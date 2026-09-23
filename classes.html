@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Классы — MAX App</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-gradient: radial-gradient(circle at 50% 0%, #2e0854 0%, #0d081c 60%, #05030a 100%);
+      --card-bg: rgba(25, 16, 48, 0.7);
+      --card-border: 1px solid rgba(168, 85, 247, 0.3);
+      --text-main: #f3f0ff;
+      --text-secondary: #a799cc;
+      --accent-purple: #a855f7;
+      --grad-magic: linear-gradient(135deg, #a855f7 0%, #6366f1 50%, #3b82f6 100%);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .app-viewport {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: rgba(10, 6, 20, 0.4);
+    }
+
+    header {
+      background: linear-gradient(180deg, #180b33 0%, #0e0721 100%);
+      backdrop-filter: blur(20px);
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .back-btn {
+      background: rgba(168, 85, 247, 0.15);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      color: #f3f0ff;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .back-btn:active { background: rgba(168, 85, 247, 0.3); }
+
+    header h1 {
+      margin: 0;
+      font-family: 'MedievalSharp', cursive;
+      font-size: 18px;
+      flex: 1;
+      text-align: center;
+      color: #c084fc;
+    }
+
+    .header-spacer { width: 38px; flex-shrink: 0; }
+
+    main {
+      flex: 1;
+      padding: 20px 16px 40px;
+    }
+
+    .path-info {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .path-info h2 {
+      font-family: 'MedievalSharp', cursive;
+      margin: 0 0 6px;
+      font-size: 22px;
+      color: #c084fc;
+    }
+
+    .path-info p {
+      margin: 0;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .path {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .level-row {
+      display: flex;
+      align-items: flex-end;
+      position: relative;
+      height: 76px;
+      z-index: 3;
+    }
+
+    .level-row.left { justify-content: flex-start; padding-left: 30px; }
+    .level-row.right { justify-content: flex-end; padding-right: 30px; }
+    .level-row.center { justify-content: center; }
+
+    .level-circle {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'MedievalSharp', cursive;
+      font-size: 24px;
+      font-weight: 700;
+      color: white;
+      border: 3px solid rgba(255,255,255,0.2);
+      position: relative;
+      z-index: 4;
+      flex-shrink: 0;
+    }
+
+    .level-circle.active {
+      background: var(--grad-magic);
+      border-color: #c084fc;
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.6);
+    }
+
+    .level-circle.passed {
+      background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+      opacity: 0.8;
+    }
+
+    .level-circle.locked {
+      background: rgba(255,255,255,0.05);
+      color: var(--text-secondary);
+      border-color: rgba(255,255,255,0.08);
+    }
+
+    .chest {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      z-index: 4;
+      cursor: pointer;
+      bottom: 4px;
+    }
+
+    .chest.left { left: 30px; }
+    .chest.right { right: 30px; }
+    .chest.center-left { left: calc(50% - 76px); }
+    .chest.center-right { right: calc(50% - 76px); }
+
+    .chest.claimed { opacity: 0.35; cursor: default; }
+    .chest.locked-chest { opacity: 0.3; cursor: not-allowed; }
+
+    .bridge { height: 36px; position: relative; z-index: 1; }
+    .bridge svg { width: 100%; height: 100%; overflow: visible; }
+
+    .avatar-on-circle {
+      position: absolute;
+      width: 44px;
+      height: 56px;
+      z-index: 6;
+      pointer-events: none;
+    }
+
+    .avatar-on-circle img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .reward-modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .reward-modal.show { display: flex; }
+
+    .reward-box {
+      background: radial-gradient(circle, #2a124a 0%, #0a0515 100%);
+      border: 1px solid rgba(168, 85, 247, 0.4);
+      border-radius: 20px;
+      padding: 32px 24px;
+      text-align: center;
+      max-width: 320px;
+      width: 90%;
+      box-shadow: 0 0 30px rgba(168, 85, 247, 0.3);
+    }
+
+    .reward-box h2 {
+      font-family: 'MedievalSharp', cursive;
+      margin: 0 0 8px;
+      font-size: 20px;
+      color: #c084fc;
+    }
+
+    .reward-box p {
+      margin: 0 0 16px;
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .reward-close {
+      background: var(--grad-magic);
+      color: white;
+      border: none;
+      padding: 12px 32px;
+      border-radius: 50px;
+      font-family: 'MedievalSharp', cursive;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    :root { --ink:#17233d; --muted:#74809a; --paper:#f7f8fc; --line:#e7eaf1; --coral:#ff6b57; }
+    body { font-family:'DM Sans',sans-serif; background:linear-gradient(145deg,#eef1fb 0%,#fdf8f5 55%,#e9f5f3 100%); color:var(--ink); }
+    .app-viewport { max-width:480px; background:transparent; }
+    header { padding:18px 20px; background:rgba(255,255,255,.76); border-bottom:1px solid var(--line); }
+    .back-btn { color:var(--ink); background:#fff; border:1px solid var(--line); border-radius:12px; }
+    header h1 { color:var(--ink); font:700 19px 'Space Grotesk',sans-serif; }
+    main { padding:22px 20px 40px; }
+    .path-info h2 { color:var(--ink); font:700 23px 'Space Grotesk',sans-serif; }
+    .path-info p { color:var(--muted); }
+    .level-circle.active { background:var(--coral); border-color:#fff; box-shadow:0 8px 20px rgba(255,107,87,.3); }
+    .level-circle.passed { background:#5479e8; }
+    .level-circle.locked { color:#aab1c0; background:#eef0f5; border-color:#dfe3eb; }
+    .bridge svg path { stroke:rgba(84,121,232,.35); }
+    .reward-box { background:#fff; border:1px solid var(--line); border-radius:22px; box-shadow:0 18px 44px rgba(23,35,61,.16); }
+    .reward-box h2 { color:var(--ink); font:700 20px 'Space Grotesk',sans-serif; }
+    .reward-box p { color:var(--muted); }
+    .reward-close { background:var(--coral); border-radius:13px; font:700 15px 'DM Sans',sans-serif; }
+  </style>
+</head>
+<body>
+
+  <div class="app-viewport">
+    <header>
+      <button class="back-btn" id="backBtn">←</button>
+      <h1>Классы</h1>
+      <div class="header-spacer"></div>
+    </header>
+
+    <main>
+      <div class="path-info">
+        <h2>Твой путь обучения</h2>
+        <p>Открывай сундучки на пройденных уровнях!</p>
+      </div>
+
+      <div class="path" id="path"></div>
+    </main>
+  </div>
+
+  <div class="reward-modal" id="rewardModal">
+    <div class="reward-box">
+      <h2 id="rewardTitle">Награда!</h2>
+      <p id="rewardText"></p>
+      <button class="reward-close" id="rewardClose">Забрать</button>
+    </div>
+  </div>
+
+  <script>
+    localStorage.removeItem("claimed_chests");
+    var icons = { paladin:"paladin.png", necromancer:"necromancer.png", rogue:"rogue.png", mage:"mage.png", berserker:"berserker.png" };
+    var savedClass = localStorage.getItem("avatar_class") || "paladin";
+    var avatarIcon = icons[savedClass];
+
+    function parseClassNumber(str) { if (!str) return 1; var m = String(str).match(/\d+/); if (m) { var n = parseInt(m[0]); if (n>=1 && n<=11) return n; } return 1; }
+    var userClass = parseClassNumber(localStorage.getItem("user_class"));
+
+    function getClaimedChests() { try { return JSON.parse(localStorage.getItem("claimed_chests")) || []; } catch(e) { return []; } }
+    function saveClaimedChests(arr) { localStorage.setItem("claimed_chests", JSON.stringify(arr)); }
+
+    var chestClosedSvg = '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="14" width="24" height="14" rx="2" fill="#31105e" stroke="#a855f7" stroke-width="1.5"/><path d="M4 14 Q4 6 16 6 Q28 6 28 14" fill="#4c1d95" stroke="#a855f7" stroke-width="1.5"/><circle cx="16" cy="14" r="1.5" fill="#a855f7"/></svg>';
+    var chestOpenSvg = '<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="16" width="24" height="12" rx="2" fill="#1e1b4b" stroke="#6366f1" stroke-width="1"/><text x="16" y="24" text-anchor="middle" font-size="10" fill="#a855f7">✓</text></svg>';
+
+    var positions = ["center","left","center","right","center","left","center","right","center","left","center"];
+
+    function generateBridge(f,t) {
+      var xF = f==="left"?20:f==="right"?80:50, xT = t==="left"?20:t==="right"?80:50;
+      var d = "M"+xF+" 0 Q"+(xF+xT)/2+" 18 "+xT+" 36";
+      return '<svg viewBox="0 0 100 36" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none"><path d="'+d+'" stroke="rgba(168,85,247,0.5)" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="4 6"/></svg>';
+    }
+
+    var pathEl = document.getElementById("path");
+    var avatarElement = null;
+    var claimedChests = getClaimedChests();
+
+    function buildPath() {
+      pathEl.innerHTML = "";
+      for (var i = 1; i <= 11; i++) {
+        if (i > 1) { var b = document.createElement("div"); b.className = "bridge"; b.innerHTML = generateBridge(positions[i-2], positions[i-1]); pathEl.appendChild(b); }
+        var row = document.createElement("div"); row.className = "level-row " + positions[i-1]; row.dataset.level = i;
+        var circle = document.createElement("div"); circle.className = "level-circle"; circle.textContent = i;
+        if (i === userClass) circle.classList.add("active"); else if (i < userClass) circle.classList.add("passed"); else circle.classList.add("locked");
+        row.appendChild(circle);
+
+        var chest = document.createElement("div");
+        var side = positions[i-1]==="right"?"left":positions[i-1]==="left"?"right":"center-right";
+        chest.className = "chest " + side; chest.dataset.level = i;
+
+        var isClaimed = claimedChests.indexOf(i) !== -1;
+        var isAvailable = i <= userClass;
+
+        if (isClaimed) { chest.classList.add("claimed"); chest.innerHTML = chestOpenSvg; }
+        else if (!isAvailable) { chest.classList.add("locked-chest"); chest.innerHTML = chestClosedSvg; }
+        else { chest.innerHTML = chestClosedSvg; }
+
+        (function(el, lvl) {
+          el.addEventListener("click", function(e) {
+            e.stopPropagation();
+            if (claimedChests.indexOf(lvl) !== -1) return;
+            if (lvl > userClass) { alert("Этот сундук откроется, когда ты дойдёшь до " + lvl + " класса"); return; }
+            claimedChests.push(lvl); saveClaimedChests(claimedChests);
+            el.classList.add("claimed"); el.innerHTML = chestOpenSvg;
+            document.getElementById("rewardTitle").textContent = "Сундук " + lvl + " класса!";
+            document.getElementById("rewardText").textContent = "Награда получена!";
+            document.getElementById("rewardModal").classList.add("show");
+          });
+        })(chest, i);
+
+        row.appendChild(chest); pathEl.appendChild(row);
+      }
+
+      avatarElement = document.createElement("div"); avatarElement.className = "avatar-on-circle";
+      avatarElement.innerHTML = '<img src="' + avatarIcon + '" alt="">';
+      pathEl.appendChild(avatarElement);
+
+      setTimeout(function() {
+        moveAvatar(pathEl.querySelector('.level-row[data-level="' + userClass + '"]'));
+      }, 50);
+    }
+
+    function moveAvatar(row) {
+      if (!row || !avatarElement) return;
+      var c = row.querySelector(".level-circle"); if (!c) return;
+      var cr = c.getBoundingClientRect(); var pr = pathEl.getBoundingClientRect();
+      avatarElement.style.left = (cr.left - pr.left + cr.width/2 - 22) + "px";
+      avatarElement.style.bottom = (pr.bottom - cr.top + 4) + "px";
+    }
+
+    buildPath();
+    window.addEventListener("resize", function() { moveAvatar(pathEl.querySelector('.level-row[data-level="' + userClass + '"]')); });
+    document.getElementById("rewardClose").addEventListener("click", function() { document.getElementById("rewardModal").classList.remove("show"); });
+    
+    document.getElementById("backBtn").addEventListener("click", function() { window.location.href = "app.html"; });
+  </script>
+</body>
+</html>
