@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduBot — Проверь себя</title>
+    <script>document.documentElement.dataset.theme = localStorage.getItem('dark_theme') === 'true' ? 'dark' : 'light';</script>
+    <style>
+        :root {
+            --bg-dark: #f7f8fc;
+            --bg-card: #ffffff;
+            --bg-input: #f1f3f8;
+            --accent-test: #a18cd1;
+            --accent-test-2: #8b5cf6;
+            --accent-correct: #2ecc71;
+            --accent-wrong: #e74c3c;
+            --text-main: #17233d;
+            --text-sec: #74809a;
+            --glow-test: rgba(161, 140, 209, 0.3);
+            --border: #e7eaf1;
+        }
+        :root[data-theme="dark"] {
+            --bg-dark: #1a1f29;
+            --bg-card: #232933;
+            --bg-input: #2d3540;
+            --text-main: #ffffff;
+            --text-sec: #a0a0b0;
+            --border: #333a47;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        header {
+            background-color: var(--bg-card);
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .logo {
+            flex: 1;
+            margin: 0;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+        }
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 25px;
+            line-height: 1;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .back-btn:hover { color: var(--accent-test); border-color: var(--accent-test); }
+        .header-space { width: 38px; }
+        .container { max-width: 800px; margin: 2rem auto; padding: 0 1rem; }
+        .page-title {
+            font-size: 1.75rem; font-weight: 800; margin-bottom: 1.5rem;
+            display: flex; align-items: center; gap: 0.75rem;
+        }
+        .page-title span {
+            width: 48px; height: 48px; border-radius: 14px;
+            background: var(--accent-test);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; box-shadow: 0 4px 15px var(--glow-test);
+        }
+        .subject-row {
+            display: flex; gap: 0.5rem; overflow-x: auto;
+            padding-bottom: 0.5rem; margin-bottom: 2rem;
+        }
+        .sub-btn {
+            padding: 0.6rem 1.2rem; border: 1px solid var(--border);
+            border-radius: 999px; background: var(--bg-card);
+            color: var(--text-sec); font-size: 0.875rem;
+            cursor: pointer; white-space: nowrap; transition: all 0.2s;
+        }
+        .sub-btn:hover { border-color: var(--accent-test); color: var(--text-main); }
+        .sub-btn.active { background: var(--accent-test); color: white; border-color: var(--accent-test); }
+
+        /* Генератор */
+        .settings-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 1.25rem; padding: 1.5rem; margin-bottom: 2rem;
+        }
+        .settings-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; }
+        .setting-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+        .setting-row:last-child { margin-bottom: 0; }
+        .setting-label { color: var(--text-sec); font-size: 0.95rem; }
+        .setting-control { display: flex; align-items: center; gap: 0.5rem; }
+        .num-btn {
+            width: 36px; height: 36px; border-radius: 0.5rem;
+            border: 1px solid var(--border); background: var(--bg-input);
+            color: var(--text-main); font-size: 1rem; cursor: pointer; transition: all 0.2s;
+        }
+        .num-btn:hover { border-color: var(--accent-test); color: var(--accent-test); }
+        .num-val { min-width: 40px; text-align: center; font-weight: 700; font-size: 1.1rem; }
+        .diff-btn {
+            font-size: 0.8rem; padding: 0.4rem 0.8rem;
+            border: 1px solid var(--border); border-radius: 999px;
+            background: var(--bg-card); color: var(--text-sec);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .diff-btn:hover { border-color: var(--accent-test); color: var(--text-main); }
+        .diff-btn.active { background: var(--accent-test); color: white; border-color: var(--accent-test); }
+        .generate-btn {
+            width: 100%; padding: 1rem; border: none; border-radius: 0.85rem;
+            background: var(--accent-test); color: white; font-weight: 700;
+            font-size: 1.05rem; cursor: pointer; text-transform: uppercase;
+            letter-spacing: 0.5px; transition: all 0.2s;
+            box-shadow: 0 4px 15px var(--glow-test); margin-bottom: 2rem;
+        }
+        .generate-btn:hover { background: var(--accent-test-2); transform: scale(1.01); }
+
+        /* Тест */
+        .test-section { display: none; }
+        .test-section.active { display: block; }
+        .test-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .test-progress { font-size: 0.9rem; color: var(--text-sec); }
+        .test-timer {
+            background: var(--bg-card); border: 1px solid var(--border);
+            padding: 0.4rem 1rem; border-radius: 0.5rem;
+            font-weight: 700; font-size: 1rem; color: var(--accent-test);
+        }
+        .progress-bar {
+            width: 100%; height: 6px; background: var(--bg-input);
+            border-radius: 999px; margin-bottom: 2rem; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: var(--accent-test);
+            border-radius: 999px; transition: width 0.3s;
+        }
+        .question-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 1.25rem; padding: 2rem; margin-bottom: 1.5rem;
+        }
+        .question-num {
+            display: inline-block; background: rgba(161,140,209,0.2);
+            color: var(--accent-test); padding: 0.25rem 0.75rem;
+            border-radius: 0.5rem; font-size: 0.8rem; font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .question-text { font-size: 1.15rem; font-weight: 600; margin-bottom: 1.5rem; line-height: 1.5; }
+        .answer-options { display: flex; flex-direction: column; gap: 0.75rem; }
+        .answer-option {
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 1rem 1.25rem; border: 1px solid var(--border);
+            border-radius: 0.85rem; background: var(--bg-input);
+            cursor: pointer; transition: all 0.2s;
+        }
+        .answer-option:hover { border-color: var(--accent-test); transform: translateX(4px); }
+        .answer-option.selected { border-color: var(--accent-test); background: rgba(161,140,209,0.15); }
+        .answer-option.correct { border-color: var(--accent-correct); background: rgba(46,204,113,0.15); }
+        .answer-option.wrong { border-color: var(--accent-wrong); background: rgba(231,76,60,0.15); }
+        .answer-letter {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: var(--bg-dark); border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 0.85rem; flex-shrink: 0;
+        }
+        .answer-option.selected .answer-letter { background: var(--accent-test); border-color: var(--accent-test); color: white; }
+        .answer-option.correct .answer-letter { background: var(--accent-correct); border-color: var(--accent-correct); color: white; }
+        .answer-option.wrong .answer-letter { background: var(--accent-wrong); border-color: var(--accent-wrong); color: white; }
+        .answer-text { font-size: 0.95rem; }
+
+        .test-nav { display: flex; gap: 0.75rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .nav-btn-test {
+            flex: 1 1 120px; min-width: 120px; padding: 0.85rem; border: 1px solid var(--border);
+            border-radius: 0.85rem; background: var(--bg-card);
+            color: var(--text-main); font-weight: 600; cursor: pointer;
+            transition: all 0.2s; text-align: center;
+        }
+        .nav-btn-test:hover { border-color: var(--accent-test); }
+        .nav-btn-test:disabled { opacity: 0.4; cursor: not-allowed; }
+        .nav-btn-test.finish { background: var(--accent-test); color: white; border-color: var(--accent-test); }
+        .nav-btn-test.finish:hover { background: var(--accent-test-2); }
+
+        /* Результат */
+        .result-card {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 1.25rem; padding: 2rem; text-align: center;
+            margin-bottom: 2rem;
+        }
+        .result-score {
+            font-size: 3rem; font-weight: 800; color: var(--accent-test);
+            margin-bottom: 0.5rem;
+        }
+        .result-label { color: var(--text-sec); font-size: 1rem; margin-bottom: 1.5rem; }
+        .result-breakdown {
+            display: flex; justify-content: center; gap: 2rem;
+            margin-bottom: 1.5rem; flex-wrap: wrap;
+        }
+        .result-stat { text-align: center; }
+        .result-stat-val { font-size: 1.5rem; font-weight: 700; }
+        .result-stat-val.correct { color: var(--accent-correct); }
+        .result-stat-val.wrong { color: var(--accent-wrong); }
+        .result-stat-label { color: var(--text-sec); font-size: 0.8rem; text-transform: uppercase; }
+        .result-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+        .result-btn {
+            padding: 0.85rem 1.5rem; border-radius: 0.85rem;
+            font-weight: 700; cursor: pointer; transition: all 0.2s;
+            border: none; text-decoration: none;
+        }
+        .result-btn.primary { background: var(--accent-test); color: white; }
+        .result-btn.primary:hover { background: var(--accent-test-2); }
+        .result-btn.secondary { background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border); }
+
+        /* Готовые тесты */
+        .ready-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; }
+        .test-list { display: flex; flex-direction: column; gap: 0.75rem; }
+        .test-item {
+            background: var(--bg-card); border: 1px solid var(--border);
+            border-radius: 1rem; padding: 1.25rem;
+            display: flex; align-items: center; justify-content: space-between;
+            cursor: pointer; transition: transform 0.2s, border-color 0.2s;
+        }
+        .test-item:hover { transform: translateX(4px); border-color: var(--accent-test); }
+        .test-item-info h4 { margin: 0 0 0.25rem 0; font-size: 1rem; }
+        .test-item-info p { margin: 0; color: var(--text-sec); font-size: 0.85rem; }
+        .test-meta { display: flex; align-items: center; gap: 1rem; }
+        .meta-badge {
+            background: var(--bg-input); padding: 0.3rem 0.75rem;
+            border-radius: 0.5rem; font-size: 0.8rem; color: var(--text-sec);
+        }
+        .meta-badge.difficulty { background: rgba(161,140,209,0.2); color: var(--accent-test); }
+        .start-arrow { color: var(--accent-test); font-size: 1.25rem; }
+        .quest-mode .subject-row,
+        .quest-mode .settings-card,
+        .quest-mode .generate-btn,
+        .quest-mode #readySection { display: none !important; }
+
+    </style>
+</head>
+<body>
+    <header>
+        <a href="bot.html" class="back-btn" aria-label="Назад">‹</a>
+        <div class="logo">EduBot</div>
+        <div class="header-space" aria-hidden="true"></div>
+    </header>
+
+    <div class="container">
+        <div class="page-title">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align: middle; margin-right: 8px;">
+                <path d="M9.5 18.5c-3.4 0-6-2.2-6-5.3S6.1 8 9.5 8c1.4 0 2.6.4 3.6 1.1 1.5-1.2 3.8-1.3 5.4-.3.9.6 1.5 1.5 1.7 2.5.4 2.4-1.8 4.5-5 5.1-.9.2-1.9.3-3 .3H9.5z"></path>
+                <path d="M11 12.5h.01M15 12.5h.01M13.5 9.5h.01"></path>
+            </svg>
+            Проверь себя
+        </div>
+
+        <div class="subject-row" id="subjectRow">
+            <button class="sub-btn active" data-subject="math">Математика</button>
+            <button class="sub-btn" data-subject="physics">Физика</button>
+            <button class="sub-btn" data-subject="history">История</button>
+            <button class="sub-btn" data-subject="biology">Биология</button>
+            <button class="sub-btn" data-subject="english">Английский</button>
+            <button class="sub-btn" data-subject="cs">Информатика</button>
+        </div>
+
+        <!-- Генератор -->
+        <div class="settings-card">
+            <h3 class="settings-title">Сгенерировать тест</h3>
+            <div class="setting-row">
+                <span class="setting-label">Количество вопросов</span>
+                <div class="setting-control">
+                    <button class="num-btn" onclick="changeCount(-1)">−</button>
+                    <span class="num-val" id="qCount">10</span>
+                    <button class="num-btn" onclick="changeCount(1)">+</button>
+                </div>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Сложность</span>
+                <div class="setting-control">
+                    <button class="diff-btn" data-diff="easy">Лёгкая</button>
+                    <button class="diff-btn active" data-diff="medium">Средняя</button>
+                    <button class="diff-btn" data-diff="hard">Сложная</button>
+                </div>
+            </div>
+            <div class="setting-row">
+                <span class="setting-label">Таймер</span>
+                <div class="setting-control">
+                    <button class="diff-btn active" data-timer="on">Включён</button>
+                    <button class="diff-btn" data-timer="off">Выключен</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="generate-btn" onclick="startTest()">Сгенерировать тест</button>
+
+        <!-- Секция теста -->
+        <div class="test-section" id="testSection">
+            <div class="test-header">
+                <span class="test-progress" id="testProgress">Вопрос 1 из 10</span>
+                <span class="test-timer" id="testTimer" style="display:none;">⏱ 10:00</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 10%;"></div>
+            </div>
+            <div id="questionContainer"></div>
+            <div class="test-nav">
+                <button class="nav-btn-test" id="prevBtn" onclick="prevQuestion()">← Назад</button>
+                <button class="nav-btn-test" id="nextBtn" onclick="nextQuestion()">Далее →</button>
+                <button class="nav-btn-test finish" id="finishBtn" onclick="finishTest()" style="display:none;">Завершить</button>
+            </div>
+        </div>
+
+        <!-- Результат -->
+        <div class="test-section" id="resultSection">
+            <div class="result-card">
+                <div class="result-score" id="resultScore">0/10</div>
+                <div class="result-label" id="resultLabel">Тест завершён!</div>
+                <div class="result-breakdown">
+                    <div class="result-stat">
+                        <div class="result-stat-val correct" id="correctCount">0</div>
+                        <div class="result-stat-label">Верно</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-val wrong" id="wrongCount">0</div>
+                        <div class="result-stat-label">Ошибок</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-val" id="resultPercent">0%</div>
+                        <div class="result-stat-label">Результат</div>
+                    </div>
+                </div>
+                <div class="result-actions">
+                    <button class="result-btn primary" onclick="startTest()">Пройти ещё раз</button>
+                    <button class="result-btn secondary" onclick="backToSetup()">К списку тестов</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Готовые тесты -->
+        <div class="test-section active" id="readySection">
+            <div class="ready-title">Готовые тесты</div>
+            <div class="test-list" id="readyList"></div>
+        </div>
+    </div>
+
+
+
+<script>
+// База вопросов по предметам
+const questionBank = {
+    math: [
+        { q: "Чему равен дискриминант уравнения 2x² − 5x + 2 = 0?", options: ["9", "3", "−9", "1"], correct: 0 },
+        { q: "Чему равно значение sin(90°)?", options: ["0", "0.5", "1", "√2/2"], correct: 2 },
+        { q: "Найдите корень уравнения log₂(x) = 3.", options: ["6", "8", "9", "5"], correct: 1 },
+        { q: "Чему равна производная функции f(x) = x³?", options: ["3x²", "x²", "3x", "x⁴"], correct: 0 },
+        { q: "Вычислите: 7! / 5!", options: ["42", "35", "21", "49"], correct: 0 },
+        { q: "Чему равно значение выражения (2 + 3i)(1 − i)?", options: ["5 + i", "5 − i", "2 + 3i", "−1 + i"], correct: 0 },
+        { q: "Найдите площадь круга радиуса 3 (π ≈ 3.14).", options: ["28.26", "18.84", "9.42", "37.68"], correct: 0 },
+        { q: "Решите неравенство: x² − 4 < 0.", options: ["x < −2", "x > 2", "−2 < x < 2", "x < 2"], correct: 2 },
+        { q: "Чему равна сумма углов треугольника?", options: ["90°", "180°", "270°", "360°"], correct: 1 },
+        { q: "Вычислите: 2^10.", options: ["512", "100", "1024", "256"], correct: 2 },
+        { q: "Чему равно значение cos(0°)?", options: ["0", "0.5", "1", "−1"], correct: 2 },
+        { q: "Найдите корень уравнения √(x + 3) = 5.", options: ["22", "25", "28", "2"], correct: 0 },
+        { q: "Чему равно число Эйлера e (приближённо)?", options: ["2.71", "3.14", "1.61", "1.41"], correct: 0 },
+        { q: "Вычислите интеграл ∫ 2x dx.", options: ["x² + C", "2x² + C", "x + C", "2 + C"], correct: 0 },
+        { q: "Чему равно значение tg(45°)?", options: ["0", "0.5", "1", "√3"], correct: 2 },
+        { q: "Найдите нуль функции f(x) = 2x − 6.", options: ["2", "3", "6", "−3"], correct: 1 },
+        { q: "Чему равен периметр квадрата со стороной 7?", options: ["28", "49", "14", "21"], correct: 0 },
+        { q: "Решите: |x| = 5. Какие решения верны?", options: ["x = 5", "x = −5", "x = ±5", "x = 0"], correct: 2 },
+        { q: "Чему равно 0.25 в виде обыкновенной дроби?", options: ["1/3", "1/4", "1/5", "2/5"], correct: 1 },
+        { q: "Найдите объём куба с ребром 4.", options: ["16", "32", "64", "48"], correct: 2 }
+    ],
+    physics: [
+        { q: "Чему равно ускорение свободного падения на Земле (приближённо)?", options: ["8.9 м/с²", "9.8 м/с²", "10.8 м/с²", "9.0 м/с²"], correct: 1 },
+        { q: "Какой закон выражает формулу F = ma?", options: ["Закон Гука", "Второй закон Ньютона", "Закон сохранения энергии", "Закон Ома"], correct: 1 },
+        { q: "Чему равна скорость света в вакууме?", options: ["3×10⁵ м/с", "3×10⁸ м/с", "3×10⁶ м/с", "3×10⁷ м/с"], correct: 1 },
+        { q: "Единица измерения электрического сопротивления?", options: ["Ампер", "Вольт", "Ом", "Ватт"], correct: 2 },
+        { q: "Чему равна постоянная Больцмана (приближённо)?", options: ["1.38×10⁻²³ Дж/К", "6.63×10⁻³⁴ Дж·с", "9×10⁹ Н·м²/Кл²", "8.31 Дж/(моль·К)"], correct: 0 },
+        { q: "Какое из перечисленных явлений — электромагнитная волна?", options: ["Звук", "Свет", "Упругая волна в струне", "Волна на воде"], correct: 1 },
+        { q: "Формула кинетической энергии?", options: ["mgh", "mv²/2", "kx²/2", "mc²"], correct: 1 },
+        { q: "Чему равна масса электрона (приближённо)?", options: ["9.1×10⁻³¹ кг", "1.67×10⁻²⁷ кг", "6.63×10⁻³⁴ кг", "9×10⁹ кг"], correct: 0 },
+        { q: "Что измеряется в Генри (Гн)?", options: ["Ёмкость", "Индуктивность", "Магнитный поток", "Сила тока"], correct: 1 },
+        { q: "Закон Ома для участка цепи: U = ?", options: ["IR", "I/R", "R/I", "I²R"], correct: 0 },
+        { q: "Чему равна постоянная Планка (приближённо)?", options: ["6.63×10⁻³⁴ Дж·с", "1.38×10⁻²³ Дж/К", "9×10⁹ Н·м²/Кл²", "3×10⁸ м/с"], correct: 0 },
+        { q: "Какое тело движется по инерции?", options: ["Тело, на которое не действуют другие тела", "Тело, движущееся ускоренно", "Тело в состоянии покоя", "Тело, на которое действует сила"], correct: 0 },
+        { q: "Чему равна сила Архимеда?", options: ["mg", "ρgV", "pS", "kx"], correct: 1 },
+        { q: "Что такое 1 кулон?", options: ["Заряд, проходящий за 1 с при токе 1 А", "Заряд электрона", "1 А·мин", "1 В·с"], correct: 0 },
+        { q: "При каком процессе выполняется pV = const?", options: ["Изохорный", "Изобарный", "Изотермический", "Адиабатный"], correct: 2 },
+        { q: "Чему равно нормальное атмосферное давление?", options: ["760 мм рт. ст.", "1013 Па", "100 мм рт. ст.", "500 мм рт. ст."], correct: 0 },
+        { q: "Какая частица не имеет заряда?", options: ["Протон", "Электрон", "Нейтрон", "Позитрон"], correct: 2 },
+        { q: "Формула работы силы?", options: ["F/t", "F·s·cosα", "F·s²", "F/s"], correct: 1 },
+        { q: "Чему равна первая космическая скорость для Земли (приближённо)?", options: ["7.9 км/с", "11.2 км/с", "5 км/с", "15 км/с"], correct: 0 },
+        { q: "Что такое резонанс?", options: ["Совпадение частот колебаний", "Увеличение амплитуды при совпадении частот", "Затухание колебаний", "Отражение волны"], correct: 1 }
+    ],
+    history: [
+        { q: "В каком году произошло Крещение Руси?", options: ["862", "988", "1054", "1147"], correct: 1 },
+        { q: "Кто был первым царём в России?", options: ["Иван III", "Иван IV", "Пётр I", "Александр I"], correct: 1 },
+        { q: "В каком году началась Великая Отечественная война?", options: ["1939", "1940", "1941", "1942"], correct: 2 },
+        { q: "Кто командовал русским войском в Куликовской битве?", options: ["Александр Невский", "Дмитрий Донской", "Иван III", "Михаил Кутузов"], correct: 1 },
+        { q: "В каком году произошла Полтавская битва?", options: ["1700", "1709", "1721", "1762"], correct: 1 },
+        { q: "Кто был последним императором Российской империи?", options: ["Александр III", "Николай II", "Александр II", "Павел I"], correct: 1 },
+        { q: "В каком веке жил Александр Невский?", options: ["X век", "XI век", "XII век", "XIII век"], correct: 3 },
+        { q: "Какой документ отменил крепостное право?", options: ["Манифест 19 февраля 1861 г.", "Указ 1597 г.", "Жалованная грамота 1785 г.", "Указ 1762 г."], correct: 0 },
+        { q: "Кто возглавил восстание декабристов?", options: ["Александр I", "Пестель и Муравьёв", "Разин", "Пугачёв"], correct: 1 },
+        { q: "В каком году произошла Битва на Калке?", options: ["1147", "1223", "1240", "1380"], correct: 1 },
+        { q: "Кто основал Санкт-Петербург?", options: ["Иван IV", "Пётр I", "Екатерина II", "Александр I"], correct: 1 },
+        { q: "В каком году произошла революция в России?", options: ["1905", "1914", "1917", "1922"], correct: 2 },
+        { q: "Какое сражение положило конец Северной войне?", options: ["Нарвская битва", "Полтавская битва", "Гангутское сражение", "Ништадтский мир"], correct: 3 },
+        { q: "Кто был первым русским князем, принявшим христианство?", options: ["Игорь", "Ольга", "Святослав", "Владимир"], correct: 3 },
+        { q: "В каком году распался СССР?", options: ["1989", "1990", "1991", "1992"], correct: 2 },
+        { q: "Кто командовал русскими войсками в Бородинском сражении?", options: ["Барклай-де-Толли", "Михаил Кутузов", "Суворов", "Ушаков"], correct: 1 },
+        { q: "Что такое «Слово о полку Игореве»?", options: ["Летопись", "Поэма", "Договор", "Указ"], correct: 1 },
+        { q: "В каком веке произошло татаро-монгольское нашествие?", options: ["XI век", "XII век", "XIII век", "XIV век"], correct: 2 },
+        { q: "Кто провёл реформы «Просвещённого абсолютизма» в России?", options: ["Пётр I", "Екатерина II", "Александр I", "Александр II"], correct: 1 },
+        { q: "Какой город был столицей России до Москвы?", options: ["Новгород", "Киев", "Владимир", "Тверь"], correct: 1 }
+    ],
+    biology: [
+        { q: "Какой газ поглощают растения при фотосинтезе?", options: ["Кислород", "Углекислый газ", "Азот", "Водород"], correct: 1 },
+        { q: "Какой орган отвечает за перекачивание крови?", options: ["Печень", "Сердце", "Лёгкие", "Почки"], correct: 1 },
+        { q: "Сколько хромосом у здорового человека?", options: ["44", "46", "48", "42"], correct: 1 },
+        { q: "Что является единицей наследственности?", options: ["Клетка", "Ген", "Белок", "Аминокислота"], correct: 1 },
+        { q: "Какой процесс описывает деление клетки?", options: ["Митоз", "Фотосинтез", "Дыхание", "Синтез"], correct: 0 },
+        { q: "Какое растение относится к хвойным?", options: ["Дуб", "Сосна", "Берёза", "Роза"], correct: 1 },
+        { q: "Какой орган человека очищает кровь от токсинов?", options: ["Сердце", "Печень", "Желудок", "Лёгкие"], correct: 1 },
+        { q: "Что вырабатывают растения в процессе фотосинтеза?", options: ["Углекислый газ", "Кислород", "Азот", "Метан"], correct: 1 },
+        { q: "К какому типу относится человек?", options: ["Простейшие", "Членистоногие", "Хордовые", "Моллюски"], correct: 2 },
+        { q: "Где происходит газообмен в лёгких?", options: ["В трахее", "В бронхах", "В альвеолах", "В гортани"], correct: 2 },
+        { q: "Какой витамин вырабатывается под воздействием солнца?", options: ["Витамин A", "Витамин D", "Витамин C", "Витамин B12"], correct: 1 },
+        { q: "Что является основным строительным материалом клеток?", options: ["Жиры", "Белки", "Углеводы", "Вода"], correct: 1 },
+        { q: "Какая часть клетки содержит ДНК?", options: ["Цитоплазма", "Ядро", "Мембрана", "Рибосома"], correct: 1 },
+        { q: "Сколько камер в сердце человека?", options: ["2", "3", "4", "5"], correct: 2 },
+        { q: "Какое животное является млекопитающим?", options: ["Крокодил", "Дельфин", "Орёл", "Карп"], correct: 1 },
+        { q: "Как называется процесс поступления кислорода в клетку?", options: ["Диффузия", "Осмос", "Фотосинтез", "Фагоцитоз"], correct: 0 },
+        { q: "Какая группа крови считается универсальным донором?", options: ["I (+)", "II (+)", "III (−)", "IV (+)"], correct: 0 },
+        { q: "Что такое АТФ?", options: ["Белок", "Носитель энергии", "Фермент", "Гормон"], correct: 1 },
+        { q: "Какой отдел позвоночника включает 7 позвонков?", options: ["Грудной", "Шейный", "Поясничный", "Крестцовый"], correct: 1 },
+        { q: "Как называется наука о грибах?", options: ["Ботаника", "Микология", "Зоология", "Энтомология"], correct: 1 }
+    ],
+    english: [
+        { q: "Choose the correct form: 'She ___ to school every day.'", options: ["go", "goes", "going", "gone"], correct: 1 },
+        { q: "What is the past tense of 'run'?", options: ["runned", "ran", "run", "running"], correct: 1 },
+        { q: "Choose the correct article: 'I saw ___ elephant at the zoo.'", options: ["a", "an", "the", "—"], correct: 1 },
+        { q: "Which word is a synonym for 'happy'?", options: ["sad", "joyful", "angry", "tired"], correct: 1 },
+        { q: "Complete: 'If it ___ tomorrow, we will stay home.'", options: ["rain", "rains", "rained", "will rain"], correct: 1 },
+        { q: "What is the plural of 'child'?", options: ["childs", "children", "childes", "child"], correct: 1 },
+        { q: "Choose the correct preposition: 'The book is ___ the table.'", options: ["in", "on", "at", "by"], correct: 1 },
+        { q: "Which sentence is correct?", options: ["He don't like tea.", "He doesn't likes tea.", "He doesn't like tea.", "He not like tea."], correct: 2 },
+        { q: "What does 'enormous' mean?", options: ["very small", "very large", "very fast", "very slow"], correct: 1 },
+        { q: "Choose the correct verb form: 'They ___ football yesterday.'", options: ["play", "played", "plays", "playing"], correct: 1 },
+        { q: "What is the comparative form of 'good'?", options: ["gooder", "better", "best", "more good"], correct: 1 },
+        { q: "Choose: 'There ___ many books on the shelf.'", options: ["is", "are", "be", "was"], correct: 1 },
+        { q: "What is the opposite of 'expensive'?", options: ["cheap", "rich", "big", "beautiful"], correct: 0 },
+        { q: "Which is correct: 'I have ___ this movie.'", options: ["see", "saw", "seen", "seeing"], correct: 2 },
+        { q: "Complete: 'She is interested ___ music.'", options: ["on", "at", "in", "by"], correct: 2 },
+        { q: "What does 'briefly' mean?", options: ["долго", "кратко", "скучно", "ясно"], correct: 1 },
+        { q: "Choose the correct: 'The sun ___ in the east.'", options: ["rise", "rises", "rose", "rising"], correct: 1 },
+        { q: "Which word means 'to purchase'?", options: ["sell", "buy", "give", "take"], correct: 1 },
+        { q: "Complete: 'He asked me where I ___.'", options: ["live", "lived", "living", "had live"], correct: 1 },
+        { q: "What is the Past Perfect of 'eat'?", options: ["ate", "eaten", "had eaten", "has eaten"], correct: 2 }
+    ],
+    cs: [
+        { q: "Что означает аббревиатура HTML?", options: ["HyperText Markup Language", "HighText Machine Language", "HyperText Modern Language", "HyperTransfer Markup Language"], correct: 0 },
+        { q: "Какой тип данных используется для целых чисел в Python?", options: ["int", "float", "string", "bool"], correct: 0 },
+        { q: "Сколько бит в одном байте?", options: ["4", "8", "16", "32"], correct: 1 },
+        { q: "Какой оператор используется для проверки условия в Python?", options: ["if", "for", "while", "switch"], correct: 0 },
+        { q: "Что такое алгоритм?", options: ["Программа", "Набор инструкций для решения задачи", "Тип данных", "Язык программирования"], correct: 1 },
+        { q: "Какое значение вернёт выражение 2 ** 3 в Python?", options: ["6", "8", "5", "9"], correct: 1 },
+        { q: "Какой тег создаёт ссылку в HTML?", options: ["<link>", "<a>", "<href>", "<url>"], correct: 1 },
+        { q: "Что делает оператор print() в Python?", options: ["Считывает ввод", "Выводит текст на экран", "Создаёт файл", "Запускает цикл"], correct: 1 },
+        { q: "Какая структура данных хранит элементы в порядке FIFO?", options: ["Стек", "Очередь", "Список", "Дерево"], correct: 1 },
+        { q: "Чему равно 10 в двоичной системе?", options: ["1010", "1100", "1001", "0110"], correct: 0 },
+        { q: "Какой язык является компилируемым?", options: ["Python", "JavaScript", "C++", "PHP"], correct: 2 },
+        { q: "Что такое переменная?", options: ["Именованная область памяти", "Тип данных", "Функция", "Оператор"], correct: 0 },
+        { q: "Какой результат выдаст: len('Привет')?", options: ["5", "6", "7", "12"], correct: 1 },
+        { q: "Что означает CSS?", options: ["Computer Style Sheets", "Cascading Style Sheets", "Creative Style System", "Colorful Style Sheets"], correct: 1 },
+        { q: "Какой цикл выполнится хотя бы один раз?", options: ["for", "while", "do-while", "foreach"], correct: 2 },
+        { q: "Что такое рекурсия?", options: ["Цикл с предусловием", "Функция, вызывающая саму себя", "Тип сортировки", "Оператор условия"], correct: 1 },
+        { q: "Какой символ означает остаток от деления в Python?", options: ["/", "//", "%", "**"], correct: 2 },
+        { q: "Сколько байт в килобайте?", options: ["100", "1000", "1024", "512"], correct: 2 },
+        { q: "Что такое API?", options: ["Язык программирования", "Интерфейс программирования приложений", "Тип данных", "Операционная система"], correct: 1 },
+        { q: "Какой результат: True and False?", options: ["True", "False", "None", "Error"], correct: 1 }
+    ]
+};
+
+// Готовые тесты
+const readyTests = {
+    math: [
+        { title: "Алгебра. Квадратные уравнения", q: "10 вопросов · с выбором ответа", diff: "Средняя" },
+        { title: "Геометрия. Треугольники", q: "15 вопросов · с кратким ответом", diff: "Сложная" },
+        { title: "Функции и графики", q: "8 вопросов · с развёрнутым ответом", diff: "Лёгкая" },
+        { title: "Производная и интеграл", q: "12 вопросов · смешанный формат", diff: "Средняя" }
+    ],
+    physics: [
+        { title: "Механика. Законы Ньютона", q: "10 вопросов · с выбором ответа", diff: "Средняя" },
+        { title: "Электричество и магнетизм", q: "15 вопросов · с расчётами", diff: "Сложная" },
+        { title: "Термодинамика", q: "8 вопросов · с выбором ответа", diff: "Лёгкая" },
+        { title: "Оптика и волны", q: "12 вопросов · смешанный формат", diff: "Средняя" }
+    ],
+    history: [
+        { title: "Древняя Русь (IX–XIII вв.)", q: "10 вопросов · с выбором ответа", diff: "Лёгкая" },
+        { title: "Эпоха Петра I", q: "12 вопросов · с кратким ответом", diff: "Средняя" },
+        { title: "Великая Отечественная война", q: "15 вопросов · смешанный формат", diff: "Сложная" },
+        { title: "XX век. Реформы и революции", q: "10 вопросов · с выбором ответа", diff: "Средняя" }
+    ],
+    biology: [
+        { title: "Клетка и её строение", q: "10 вопросов · с выбором ответа", diff: "Лёгкая" },
+        { title: "Системы органов человека", q: "12 вопросов · смешанный формат", diff: "Средняя" },
+        { title: "Генетика и наследственность", q: "15 вопросов · с развёрнутым ответом", diff: "Сложная" },
+        { title: "Растения и фотосинтез", q: "8 вопросов · с выбором ответа", diff: "Лёгкая" }
+    ],
+    english: [
+        { title: "Present Simple vs Past Simple", q: "10 вопросов · с выбором ответа", diff: "Лёгкая" },
+        { title: "Условные предложения (Conditionals)", q: "12 вопросов · смешанный формат", diff: "Средняя" },
+        { title: "Времена Perfect", q: "15 вопросов · с кратким ответом", diff: "Сложная" },
+        { title: "Лексика: синонимы и антонимы", q: "8 вопросов · с выбором ответа", diff: "Лёгкая" }
+    ],
+    cs: [
+        { title: "Основы Python", q: "10 вопросов · с выбором ответа", diff: "Лёгкая" },
+        { title: "HTML и CSS", q: "12 вопросов · смешанный формат", diff: "Средняя" },
+        { title: "Алгоритмы и структуры данных", q: "15 вопросов · с кодом", diff: "Сложная" },
+        { title: "Системы счисления", q: "8 вопросов · с выбором ответа", diff: "Лёгкая" }
+    ]
+};
+
+const questDefinitions = {
+    algebra_grade: {
+        id: 'algebra_grade',
+        title: 'Алгебра: получи 5',
+        reward: 10,
+        target: 9,
+        questions: [
+            { q: 'Реши уравнение: 2x + 7 = 19.', options: ['5', '6', '7', '12'], correct: 1 },
+            { q: 'Найди корни уравнения x² − 9 = 0.', options: ['3', '−3', '−3 и 3', '0 и 9'], correct: 2 },
+            { q: 'Реши уравнение: (x − 2)(x + 5) = 0.', options: ['2 и −5', '−2 и 5', '2 и 5', '−2 и −5'], correct: 0 },
+            { q: 'Реши уравнение: 3x − 4 = 11.', options: ['3', '4', '5', '7'], correct: 2 },
+            { q: 'Какие корни у уравнения x² − 5x + 6 = 0?', options: ['1 и 6', '2 и 3', '−2 и −3', '−1 и −6'], correct: 1 },
+            { q: 'Упрости выражение: 4a + 3a − 2a.', options: ['5a', '9a', '5a²', 'a'], correct: 0 },
+            { q: 'Раскрой скобки: (x + 3)².', options: ['x² + 9', 'x² + 3x + 9', 'x² + 6x + 9', 'x² + 6'], correct: 2 },
+            { q: 'Реши уравнение: 2x² = 18.', options: ['3', '−3', '−3 и 3', '9'], correct: 2 },
+            { q: 'Реши уравнение: 5(x − 1) = 20.', options: ['4', '5', '6', '3'], correct: 1 },
+            { q: 'Реши уравнение: 2x + 3 = x + 10.', options: ['7', '10', '13', '−7'], correct: 0 }
+        ]
+    },
+    paronyms: {
+        id: 'paronyms',
+        title: 'Русский язык: паронимы',
+        reward: 5,
+        target: 8,
+        questions: [
+            { q: 'Как называют того, кому адресовано письмо?', options: ['Адресант', 'Адресат', 'Абонент', 'Корреспондент'], correct: 1 },
+            { q: 'Как называют отправителя письма?', options: ['Адресат', 'Абонент', 'Адресант', 'Автор'], correct: 2 },
+            { q: 'Какой метод даёт хороший результат?', options: ['Эффектный', 'Эффективный', 'Эффектированный', 'Эффективностный'], correct: 1 },
+            { q: 'Какой наряд привлёк внимание зрителей?', options: ['Эффективный', 'Эффектный', 'Эффектированный', 'Эффективностный'], correct: 1 },
+            { q: 'Что можно сделать с докладом перед аудиторией?', options: ['Предоставить доклад', 'Представить доклад', 'Представить слово', 'Предоставить выступление'], correct: 1 },
+            { q: 'Какое сочетание нормативно?', options: ['Представить слово гостю', 'Предоставить слово гостю', 'Предоставить гостя слову', 'Представить гостю возможность слова'], correct: 1 },
+            { q: 'Какой режим помогает экономить ресурсы?', options: ['Экономический', 'Экономичный', 'Экономный рост', 'Экономический режим экономии'], correct: 1 },
+            { q: 'Как обычно называют рост, связанный с экономикой страны?', options: ['Экономичный', 'Экономический', 'Экономный', 'Экономящий'], correct: 1 },
+            { q: 'Как называют человека, который мало знает и невежественен?', options: ['Невежа', 'Невежда', 'Невежливый', 'Невежливец'], correct: 1 },
+            { q: 'Как называют грубого, невоспитанного человека?', options: ['Невежда', 'Невежа', 'Неведомый', 'Невежливец'], correct: 1 }
+        ]
+    }
+};
+
+const questParam = new URLSearchParams(window.location.search).get('quest');
+const activeQuest = questDefinitions[questParam] || null;
+
+// Состояние
+let currentSubject = 'math';
+let questionCount = 10;
+let currentDifficulty = 'medium';
+let timerOn = true;
+let currentQuestions = [];
+let currentAnswers = [];
+let currentIndex = 0;
+let timerInterval = null;
+let timeLeft = 0;
+
+// Переключение предмета
+document.getElementById('subjectRow').addEventListener('click', function(e) {
+    if (e.target.classList.contains('sub-btn')) {
+        document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        currentSubject = e.target.dataset.subject;
+        renderReadyTests();
+    }
+});
+
+// Переключение сложности
+document.querySelectorAll('.diff-btn[data-diff]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.diff-btn[data-diff]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        currentDifficulty = this.dataset.diff;
+    });
+});
+
+// Переключение таймера
+document.querySelectorAll('.diff-btn[data-timer]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.diff-btn[data-timer]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        timerOn = this.dataset.timer === 'on';
+    });
+});
+
+function changeCount(delta) {
+    questionCount = Math.max(3, Math.min(20, questionCount + delta));
+    document.getElementById('qCount').textContent = questionCount;
+}
+
+function renderReadyTests() {
+    const list = document.getElementById('readyList');
+    const tests = readyTests[currentSubject] || [];
+    list.innerHTML = tests.map(t => `
+        <div class="test-item" onclick="startTest()">
+            <div class="test-item-info">
+                <h4>${t.title}</h4>
+                <p>${t.q}</p>
+            </div>
+            <div class="test-meta">
+                <span class="meta-badge difficulty">${t.diff}</span>
+                <span class="start-arrow">→</span>
+            </div>
+        </div>
+    `).join('');
+}
+
+function startTest() {
+    const pool = activeQuest
+        ? [...activeQuest.questions]
+        : [...(questionBank[currentSubject] || questionBank.math)];
+    if (activeQuest) {
+        questionCount = activeQuest.questions.length;
+        timerOn = false;
+    }
+
+    // Перемешиваем и берём нужное количество
+    pool.sort(() => Math.random() - 0.5);
+    currentQuestions = pool.slice(0, Math.min(questionCount, pool.length));
+    currentAnswers = new Array(currentQuestions.length).fill(-1);
+    currentIndex = 0;
+
+    // Показываем секцию теста
+    document.getElementById('readySection').classList.remove('active');
+    document.getElementById('resultSection').classList.remove('active');
+    document.getElementById('testSection').classList.add('active');
+
+    // Таймер
+    if (timerOn) {
+        timeLeft = currentQuestions.length * 60; // 1 минута на вопрос
+        updateTimerDisplay();
+        document.getElementById('testTimer').style.display = 'block';
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                finishTest();
+            }
+            updateTimerDisplay();
+        }, 1000);
+    } else {
+        document.getElementById('testTimer').style.display = 'none';
+    }
+
+    renderQuestion();
+}
+
+function updateTimerDisplay() {
+    const min = Math.floor(timeLeft / 60);
+    const sec = timeLeft % 60;
+    document.getElementById('testTimer').textContent = `⏱ ${min}:${sec.toString().padStart(2,'0')}`;
+}
+
+function renderQuestion() {
+    const q = currentQuestions[currentIndex];
+    const progress = ((currentIndex + 1) / currentQuestions.length * 100).toFixed(0);
+    document.getElementById('testProgress').textContent = `Вопрос ${currentIndex + 1} из ${currentQuestions.length}`;
+    document.getElementById('progressFill').style.width = progress + '%';
+
+    const letters = ['А', 'Б', 'В', 'Г'];
+    const container = document.getElementById('questionContainer');
+    container.innerHTML = `
+        <div class="question-card">
+            <span class="question-num">Вопрос ${currentIndex + 1}</span>
+            <div class="question-text">${q.q}</div>
+            <div class="answer-options">
+                ${q.options.map((opt, i) => `
+                    <div class="answer-option ${currentAnswers[currentIndex] === i ? 'selected' : ''}" onclick="selectAnswer(${i})">
+                        <span class="answer-letter">${letters[i]}</span>
+                        <span class="answer-text">${opt}</span>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    // Кнопки навигации
+    document.getElementById('prevBtn').disabled = currentIndex === 0;
+    document.getElementById('nextBtn').style.display = currentIndex < currentQuestions.length - 1 ? 'block' : 'none';
+    document.getElementById('finishBtn').style.display = currentIndex === currentQuestions.length - 1 ? 'block' : 'none';
+}
+
+function selectAnswer(idx) {
+    currentAnswers[currentIndex] = idx;
+    renderQuestion();
+}
+
+function prevQuestion() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+    }
+}
+
+function nextQuestion() {
+    if (currentIndex < currentQuestions.length - 1) {
+        currentIndex++;
+        renderQuestion();
+    }
+}
+
+function finishTest() {
+    clearInterval(timerInterval);
+    let correct = 0;
+    currentQuestions.forEach((q, i) => {
+        if (currentAnswers[i] === q.correct) correct++;
+    });
+    const wrong = currentQuestions.length - correct;
+    const percent = Math.round(correct / currentQuestions.length * 100);
+
+    document.getElementById('testSection').classList.remove('active');
+    document.getElementById('resultSection').classList.add('active');
+    document.getElementById('resultScore').textContent = `${correct}/${currentQuestions.length}`;
+    document.getElementById('correctCount').textContent = correct;
+    document.getElementById('wrongCount').textContent = wrong;
+    document.getElementById('resultPercent').textContent = percent + '%';
+
+    let label = 'Тест завершён!';
+    if (percent >= 90) label = 'Отличный результат! 🏆';
+    else if (percent >= 70) label = 'Хороший результат! 👍';
+    else if (percent >= 50) label = 'Неплохо, но есть над чем поработать 💪';
+    else label = 'Стоит повторить тему 📚';
+    if (activeQuest) {
+        const claimKey = 'edu_reward_claimed_' + activeQuest.id;
+        if (correct >= activeQuest.target) {
+            if (localStorage.getItem(claimKey) === 'true') {
+                label = 'Задание выполнено. Награда уже получена.';
+            } else {
+                const balance = Number(localStorage.getItem('edu_coins')) || 0;
+                localStorage.setItem('edu_coins', String(balance + activeQuest.reward));
+                localStorage.setItem(claimKey, 'true');
+                label = 'Задание выполнено! +' + activeQuest.reward + ' Эдукоинов';
+            }
+        } else {
+            label = 'Для награды нужно ответить верно минимум на ' + activeQuest.target + ' вопросов.';
+        }
+        document.querySelector('.result-btn.primary').textContent = 'Попробовать ещё раз';
+        document.querySelector('.result-btn.secondary').textContent = 'К наградам';
+        document.querySelector('.result-btn.secondary').onclick = function() { window.location.href = 'rewards.html'; };
+    }
+    document.getElementById('resultLabel').textContent = label;
+}
+
+function backToSetup() {
+    if (activeQuest) {
+        window.location.href = 'rewards.html';
+        return;
+    }
+    document.getElementById('resultSection').classList.remove('active');
+    document.getElementById('testSection').classList.remove('active');
+    document.getElementById('readySection').classList.add('active');
+}
+
+// Инициализация
+renderReadyTests();
+if (activeQuest) {
+    document.body.classList.add('quest-mode');
+    document.querySelector('.page-title').textContent = activeQuest.title;
+    document.querySelector('.back-btn').href = 'rewards.html';
+    startTest();
+}
+</script>
+</body>
+</html>

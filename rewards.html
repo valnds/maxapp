@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Награды — MAX App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --ink: #17233d; --muted: #74809a; --paper: #f7f8fc; --surface: #fff; --line: #e7eaf1; --teal: #168c79; --coral: #ff6b57; --gold: #f0c45d; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--paper); font-family: 'DM Sans', sans-serif; }
+    body::before { content: ''; position: fixed; inset: 0 0 auto; height: 245px; z-index: -1; background: repeating-linear-gradient(135deg, #edf5f1 0 1px, transparent 1px 18px), #edf5f1; }
+    .shell { width: min(100% - 32px, 760px); margin: 0 auto; padding: 22px 0 54px; }
+    .topbar { display: flex; align-items: center; gap: 13px; margin-bottom: 25px; }
+    .back { width: 40px; height: 40px; display: grid; place-items: center; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; text-decoration: none; font-size: 25px; line-height: 1; }
+    .topbar h1 { margin: 0; font: 700 20px 'Space Grotesk', sans-serif; }
+    .balance { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 20px; padding: 25px 27px; color: white; background: #176b61; border-radius: 8px; }
+    .balance-label { margin: 0 0 4px; color: #c4e7df; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+    .balance h2 { margin: 0; font: 700 31px/1.15 'Space Grotesk', sans-serif; }
+    .balance p:last-child { margin: 7px 0 0; color: #d2e9e3; font-size: 13px; }
+    .coin-mark { width: 58px; aspect-ratio: 1; display: grid; place-items: center; color: #59420c; background: var(--gold); border: 5px double #ffe49a; border-radius: 50%; font: 700 24px 'Space Grotesk', sans-serif; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; margin: 32px 0 13px; }
+    .section-heading h2 { margin: 0; font: 700 19px 'Space Grotesk', sans-serif; }
+    .section-heading p { margin: 0; color: var(--muted); font-size: 12px; }
+    .quest-list { display: grid; gap: 10px; }
+    .quest { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 18px; padding: 17px 18px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; }
+    .quest h3 { margin: 0 0 5px; font: 700 15px 'Space Grotesk', sans-serif; }
+    .quest p { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    .quest-reward { margin-top: 9px; color: #946b0b; font-size: 12px; font-weight: 700; }
+    .quest-action { min-width: 128px; min-height: 40px; padding: 8px 12px; color: white; background: var(--coral); border: 0; border-radius: 6px; font: 700 12px 'DM Sans', sans-serif; text-decoration: none; text-align: center; cursor: pointer; }
+    .quest-action:hover { background: #e95746; }
+    .quest-action.done { color: var(--teal); background: #e7f4f0; cursor: default; }
+    .note { margin: 14px 2px 0; color: var(--muted); font-size: 12px; line-height: 1.5; }
+    body.dark { --ink: #f4f5f8; --muted: #aab4c8; --paper: #0e0f13; --surface: #24272f; --line: #383c46; background: #0e0f13; }
+    body.dark::before { background: repeating-linear-gradient(135deg, #1b2928 0 1px, transparent 1px 18px), #171c28; }
+    body.dark .back { color: var(--ink); background: var(--surface); border-color: var(--line); }
+    body.dark .quest-action.done { color: #83d2bf; background: #203a36; }
+    @media (max-width: 520px) {
+      .shell { width: min(100% - 24px, 760px); padding-top: 15px; }
+      .balance { padding: 21px 18px; }
+      .balance h2 { font-size: 27px; }
+      .quest { grid-template-columns: 1fr; gap: 13px; padding: 15px; }
+      .quest-action { width: 100%; }
+      .section-heading { align-items: start; flex-direction: column; gap: 4px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <a class="back" href="app.html" aria-label="На главную">‹</a>
+      <h1>Награды и задания</h1>
+    </div>
+
+    <section class="balance" aria-live="polite">
+      <div>
+        <p class="balance-label">Твой баланс</p>
+        <h2><span id="coinBalance">0</span> Эдукоинов</h2>
+        <p>Выполняй задания и собирай награды</p>
+      </div>
+      <div class="coin-mark" aria-hidden="true">Э</div>
+    </section>
+
+    <div class="section-heading">
+      <h2>Задания</h2>
+      <p>За каждое задание награда выдаётся один раз</p>
+    </div>
+    <section class="quest-list" id="questList" aria-label="Список заданий"></section>
+    <p class="note">Эдукоины хранятся в этом браузере на твоём устройстве.</p>
+  </main>
+  <script>
+    document.body.classList.toggle('dark', localStorage.getItem('dark_theme') === 'true');
+
+    const quests = [
+      { id: 'algebra_grade', title: 'Получи 5 по алгебре', description: 'Реши тест из 10 вопросов и ответь правильно минимум на 9.', reward: 10, href: 'test.html?quest=algebra_grade' },
+      { id: 'paronyms', title: 'Разбери паронимы', description: 'Пройди тест по русскому языку и набери не меньше 8 правильных ответов из 10.', reward: 5, href: 'test.html?quest=paronyms' }
+    ];
+
+    function renderRewards() {
+      document.getElementById('coinBalance').textContent = String(Number(localStorage.getItem('edu_coins')) || 0);
+      document.getElementById('questList').innerHTML = quests.map(function(quest) {
+        const completed = localStorage.getItem('edu_reward_claimed_' + quest.id) === 'true';
+        return '<article class="quest"><div><h3>' + quest.title + '</h3><p>' + quest.description + '</p><div class="quest-reward">+' + quest.reward + ' Эдукоинов</div></div>' +
+          (completed ? '<span class="quest-action done">Выполнено</span>' : '<a class="quest-action" href="' + quest.href + '">Начать задание</a>') + '</article>';
+      }).join('');
+    }
+
+    renderRewards();
+    window.addEventListener('storage', renderRewards);
+  </script>
+</body>
+</html>

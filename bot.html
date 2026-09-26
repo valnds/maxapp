@@ -1,11 +1,421 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Бот-помощник — MAX App</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EduBot — Учебный модуль</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #17233d;
+            --muted: #74809a;
+            --paper: #f7f8fc;
+            --surface: #ffffff;
+            --surface-alt: #f1f3f8;
+            --line: #e7eaf1;
+            --accent: #ff6b57;
+            --accent-soft: #fff0ed;
+            --blue: #5479e8;
+            --teal: #20a995;
+            --purple: #9b6cff;
+            --shadow: 0 16px 44px rgba(23, 35, 61, .08);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding-bottom: 88px;
+            color: var(--ink);
+            background: linear-gradient(145deg, #eef1fb 0%, #fdf8f5 55%, #e9f5f3 100%);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0 0 auto;
+            height: 260px;
+            background: #eef1fb;
+            z-index: -1;
+        }
+
+        .app-shell {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 22px 20px 18px;
+        }
+
+        .logo {
+            margin: 0;
+            font: 700 28px 'Space Grotesk', sans-serif;
+            letter-spacing: -.04em;
+            color: var(--ink);
+        }
+
+        .section-description {
+            max-width: 390px;
+            margin: 5px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .container {
+            flex: 1;
+            padding: 8px 20px 30px;
+        }
+
+        .hero-stats {
+            display: none;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 16px;
+            box-shadow: 0 6px 22px rgba(23, 35, 61, .04);
+            transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: #d9deec;
+            box-shadow: var(--shadow);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .icon-box {
+            width: 42px;
+            height: 42px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 14px rgba(0,0,0,.08);
+        }
+
+        .card h3 {
+            margin: 0;
+            font: 700 15px 'Space Grotesk', sans-serif;
+            color: var(--ink);
+        }
+
+        .card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 11px;
+            line-height: 1.42;
+        }
+
+        .preview-area {
+            min-height: 110px;
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface-alt);
+            border: 1px dashed #d0d7ea;
+            border-radius: 16px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+            padding: 12px;
+        }
+
+        .btn-block {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            width: 100%;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 1 1 0;
+            min-height: 42px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            color: white;
+            text-decoration: none;
+            font: 700 12px 'DM Sans', sans-serif;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+            transition: transform .2s ease;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .btn:hover { transform: scale(1.02); }
+        .btn-flash { background: linear-gradient(135deg, #ff6b57, #ff8f7a); box-shadow: 0 8px 18px rgba(255,107,87,.22); }
+        .btn-video { background: linear-gradient(135deg, #ff9a9e, #ffb79b); box-shadow: 0 8px 18px rgba(255,154,158,.2); }
+        .btn-test { background: linear-gradient(135deg, #9b6cff, #7d7df3); box-shadow: 0 8px 18px rgba(155,108,255,.22); }
+        .btn-secondary {
+            background: rgba(255,255,255,.54);
+            color: var(--ink);
+            border-color: var(--line);
+        }
+
+        .bottom-nav {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 16px 16px;
+            background: rgba(255, 255, 255, .94);
+            border-top: 1px solid var(--line);
+        }
+
+        .nav-item {
+            display: grid;
+            justify-items: center;
+            gap: 4px;
+            color: #a0a7b8;
+            background: transparent;
+            border: 0;
+            font: 600 10px 'DM Sans', sans-serif;
+            cursor: pointer;
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        body.dark {
+            --ink: #f4f5f8;
+            --muted: #aab4c8;
+            --paper: #0e0f13;
+            --surface: #24272f;
+            --surface-alt: #2d3038;
+            --line: #383c46;
+            --accent: #ff6b57;
+            --shadow: 0 16px 44px rgba(0, 0, 0, .28);
+            background: var(--paper);
+        }
+
+        body.dark::before {
+            background: #171c28;
+        }
+
+        body.dark .stat-card,
+        body.dark .card,
+        body.dark .bottom-nav {
+            background: #24272f;
+            border-color: #383c46;
+        }
+
+        body.dark .preview-area {
+            background: #2d3038;
+            border-color: #4d5363;
+        }
+
+        body.dark .card h3,
+        body.dark .logo,
+        body.dark .stat-val {
+            color: #fff;
+        }
+
+        body.dark .card p,
+        body.dark .stat-label,
+        body.dark .preview-area {
+            color: #aab4c8;
+        }
+
+        body.dark .bottom-nav {
+            background: #15171c;
+            border-color: #272a32;
+        }
+
+        @media (max-width: 480px) {
+            body { padding-bottom: 96px; }
+            header { padding: 18px 18px 12px; }
+            .logo { font-size: 32px; }
+            .container { padding: 8px 16px 28px; }
+            .grid { grid-template-columns: 1fr; gap: 14px; }
+            .card { padding: 18px; border-radius: 18px; }
+            .card-header { gap: 13px; margin-bottom: 12px; }
+            .icon-box { width: 48px; height: 48px; border-radius: 14px; font-size: 1.35rem; }
+            .card h3 { font-size: 18px; }
+            .card p { font-size: 14px; line-height: 1.5; }
+            .preview-area { min-height: 88px; margin-top: 12px; padding: 14px; border-radius: 12px; font-size: 14px; }
+            .btn-block { gap: 10px; margin-top: 12px; }
+            .btn { min-height: 50px; padding: 11px 14px; border-radius: 10px; font-size: 14px; }
+            .bottom-nav { padding: 12px 18px 17px; }
+            .nav-item { gap: 5px; font-size: 12px; }
+            .nav-item svg { width: 24px; height: 24px; }
+        }
+
+        @media (min-width: 600px) {
+            body {
+                padding-top: 20px;
+                padding-bottom: 108px;
+            }
+
+            .app-shell {
+                min-height: calc(100vh - 40px);
+                box-shadow: var(--shadow);
+                border-radius: 28px;
+                overflow: hidden;
+            }
+        }
+    </style>
 </head>
 <body>
-  <!-- Страница бота для дальнейшей разработки. -->
+    <div class="app-shell">
+        <header>
+            <div>
+                <h1 class="logo">EduBot</h1>
+                <p class="section-description">Карточки, видеоразборы и тесты помогут повторить темы и подготовиться к урокам.</p>
+            </div>
+        </header>
+
+        <div class="container">
+                <div class="grid">
+                <article class="card">
+                    <div class="card-header">
+                        <div class="icon-box" style="background: linear-gradient(135deg, #ff6b57, #ff8f7a);">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3.5" y="5.5" width="11" height="13" rx="2.5"></rect>
+                                <path d="M8.5 5.5V3.8M13.5 5.5V3.8M9 13.5h3.5M9 9.5h5.5"></path>
+                                <rect x="14.5" y="10.5" width="6" height="8" rx="2"></rect>
+                            </svg>
+                        </div>
+                        <h3>Запоминай</h3>
+                    </div>
+                    <p>Карточки и готовые наборы для быстрого закрепления.</p>
+                    <div class="preview-area">Пример карточки</div>
+                    <div class="btn-block">
+                        <a href="flashcards.html" class="btn btn-flash">Тема</a>
+                        <a href="flashcards.html" class="btn btn-secondary">Создать</a>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-header">
+                        <div class="icon-box" style="background: linear-gradient(135deg, #ff9a9e, #ffb79b);">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <rect x="3.5" y="6" width="13" height="10" rx="2.5"></rect>
+                                <path d="M10 9.5v5l4-2.5-4-2.5z"></path>
+                                <path d="M16.5 9.5h2.5v8.5a2 2 0 0 1-2 2H8.5"></path>
+                            </svg>
+                        </div>
+                        <h3>Разборы</h3>
+                    </div>
+                    <p>Короткие видео и пояснения по ДЗ и темам.</p>
+                    <div class="preview-area">Разбор</div>
+                    <div class="btn-block">
+                        <a href="video.html" class="btn btn-video">Смотреть</a>
+                        <a href="video.html" class="btn btn-secondary">Подборки</a>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-header">
+                        <div class="icon-box" style="background: linear-gradient(135deg, #9b6cff, #7d7df3);">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M9.5 18.5c-3.4 0-6-2.2-6-5.3S6.1 8 9.5 8c1.4 0 2.6.4 3.6 1.1 1.5-1.2 3.8-1.3 5.4-.3.9.6 1.5 1.5 1.7 2.5.4 2.4-1.8 4.5-5 5.1-.9.2-1.9.3-3 .3H9.5z"></path>
+                                <path d="M11 12.5h.01M15 12.5h.01M13.5 9.5h.01"></path>
+                            </svg>
+                        </div>
+                        <h3>Проверка</h3>
+                    </div>
+                    <p>Генератор вопросов и быстрый разбор ошибок.</p>
+                    <div class="preview-area">Вопрос</div>
+                    <div class="btn-block">
+                        <a href="test.html" class="btn btn-test">Тест</a>
+                        <a href="test.html" class="btn btn-secondary">Готовый</a>
+                    </div>
+                </article>
+
+                <article class="card">
+                    <div class="card-header">
+                        <div class="icon-box" style="background: linear-gradient(135deg, #20a995, #58c7b8);">
+                            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M6.5 18.5h11a2 2 0 0 0 2-2V7.5a2 2 0 0 0-2-2h-11a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2z"></path>
+                                <path d="M8 10.5h8M8 14h6"></path>
+                            </svg>
+                        </div>
+                        <h3>Поддержка</h3>
+                    </div>
+                    <p>Пиши боту, чтобы быстро получить подсказку.</p>
+                    <div class="preview-area">Чат-бот</div>
+                    <div class="btn-block">
+                        <a href="bot.html" class="btn btn-secondary">Открыть</a>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav" aria-label="Главная навигация">
+        <button class="nav-item" id="homeNav" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 10 9-7 9 7v10H3V10Z"/><path d="M9 20v-6h6v6"/></svg>
+            Главная
+        </button>
+        <button class="nav-item" id="profileNav" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>
+            Профиль
+        </button>
+        <button class="nav-item active" id="botNav" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="7" width="16" height="13" rx="3"/><path d="M12 3v4M8 12h.01M16 12h.01M8 16h8"/></svg>
+            Бот
+        </button>
+    </nav>
+
+    <script>
+        document.body.classList.toggle('dark', localStorage.getItem('dark_theme') === 'true');
+
+        document.getElementById('homeNav').addEventListener('click', function () {
+            window.location.href = 'app.html';
+        });
+
+        document.getElementById('profileNav').addEventListener('click', function () {
+            window.location.href = 'profile.html';
+        });
+
+        document.getElementById('botNav').addEventListener('click', function () {
+            window.location.href = 'bot.html';
+        });
+    </script>
 </body>
 </html>

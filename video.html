@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduBot — Разбери ДЗ</title>
+    <script>document.documentElement.dataset.theme = localStorage.getItem('dark_theme') === 'true' ? 'dark' : 'light';</script>
+    <style>
+        :root {
+            --bg-dark: #f7f8fc;
+            --bg-card: #ffffff;
+            --bg-input: #f1f3f8;
+            --bg-media: #e9edf5;
+            --accent-video: #ff9a9e;
+            --accent-video-2: #ff6b6b;
+            --text-main: #17233d;
+            --text-sec: #74809a;
+            --glow-video: rgba(255, 154, 158, 0.3);
+            --border: #e7eaf1;
+        }
+        :root[data-theme="dark"] {
+            --bg-dark: #1a1f29;
+            --bg-card: #232933;
+            --bg-input: #2d3540;
+            --bg-media: #141820;
+            --text-main: #ffffff;
+            --text-sec: #a0a0b0;
+            --border: #333a47;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+        header {
+            background-color: var(--bg-card);
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            flex: 1;
+            margin: 0;
+            text-align: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--text-main);
+        }
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-main);
+            background: rgba(255,255,255,.06);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 25px;
+            line-height: 1;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .back-btn:hover { color: var(--accent-video); border-color: var(--accent-video); }
+        .header-space { width: 38px; }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .page-title span {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: var(--accent-video);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px var(--glow-video);
+        }
+
+        /* Выбор предмета */
+        .subject-row {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+            margin-bottom: 2rem;
+        }
+        .sub-btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            background: var(--bg-card);
+            color: var(--text-sec);
+            font-size: 0.875rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        .sub-btn:hover {
+            border-color: var(--accent-video);
+            color: var(--text-main);
+        }
+        .sub-btn.active {
+            background: var(--accent-video);
+            color: white;
+            border-color: var(--accent-video);
+        }
+
+        /* Видео плеер */
+        .video-player {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: var(--bg-media);
+            border-radius: 1.25rem;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .video-player::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,154,158,0.05), rgba(255,107,107,0.05));
+        }
+        .play-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: var(--accent-video);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px var(--glow-video);
+            transition: transform 0.2s;
+            z-index: 2;
+        }
+        .play-circle:hover { transform: scale(1.1); }
+        .video-label {
+            color: var(--text-sec);
+            font-size: 0.95rem;
+            z-index: 2;
+        }
+
+        /* Список видео */
+        .video-list-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+        .video-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .video-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        .video-thumb {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: var(--bg-media);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .video-thumb::after {
+            content: '';
+            position: absolute;
+            inset: auto;
+        }
+        .video-thumb-icon {
+            position: absolute;
+            width: 42px;
+            height: 42px;
+            color: var(--accent-video);
+            opacity: 0.8;
+            z-index: 2;
+        }
+        .video-duration {
+            position: absolute;
+            bottom: 0.5rem;
+            right: 0.5rem;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.3rem;
+            font-size: 0.75rem;
+            z-index: 3;
+        }
+        .video-info {
+            padding: 1rem;
+        }
+        .video-info h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.95rem;
+            color: var(--text-main);
+        }
+        .video-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: var(--text-sec);
+        }
+
+        /* Кнопка "задать вопрос боту" */
+        .ask-bot {
+            margin-top: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        .ask-bot-text {
+            flex: 1 1 220px;
+        }
+        .ask-bot-text h4 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+        }
+        .ask-bot-text p {
+            margin: 0;
+            color: var(--text-sec);
+            font-size: 0.85rem;
+        }
+        .ask-btn {
+            background: var(--accent-video);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 0.75rem;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+            flex: 0 0 auto;
+        }
+        .ask-btn:hover {
+            background: var(--accent-video-2);
+            transform: scale(1.03);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="bot.html" class="back-btn" aria-label="Назад">‹</a>
+        <div class="logo">EduBot</div>
+        <div class="header-space" aria-hidden="true"></div>
+    </header>
+
+    <div class="container">
+        <div class="page-title">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align: middle; margin-right: 8px;">
+                <rect x="3.5" y="6" width="13" height="10" rx="2.5"></rect>
+                <path d="M10 9.5v5l4-2.5-4-2.5z"></path>
+                <path d="M16.5 9.5h2.5v8.5a2 2 0 0 1-2 2H8.5"></path>
+            </svg>
+            Разбери ДЗ и тему
+        </div>
+
+        <!-- Выбор предмета -->
+        <div class="subject-row">
+            <button class="sub-btn active">Математика</button>
+            <button class="sub-btn">Физика</button>
+            <button class="sub-btn">История</button>
+            <button class="sub-btn">Биология</button>
+            <button class="sub-btn">Английский</button>
+            <button class="sub-btn">Информатика</button>
+        </div>
+
+        <!-- Видео плеер -->
+        <div class="video-player">
+            <div class="play-circle" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="42" height="42" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M10 8.5v7l6-3.5-6-3.5z"></path>
+                </svg>
+            </div>
+        </div>
+
+        <!-- Список видео -->
+        <div class="video-list-title">Доступные разборы</div>
+        <div class="video-grid">
+            <div class="video-item">
+                <div class="video-thumb">
+                    <svg class="video-thumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M10 8.5v7l6-3.5-6-3.5z"></path>
+                    </svg>
+                    <span class="video-duration">12:30</span>
+                </div>
+                <div class="video-info">
+                    <h4>Квадратные уравнения</h4>
+                    <p>Разбор формулы дискриминанта и теоремы Виета</p>
+                </div>
+            </div>
+            <div class="video-item">
+                <div class="video-thumb">
+                    <svg class="video-thumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M10 8.5v7l6-3.5-6-3.5z"></path>
+                    </svg>
+                    <span class="video-duration">08:15</span>
+                </div>
+                <div class="video-info">
+                    <h4>Системы уравнений</h4>
+                    <p>Метод подстановки и метод сложения</p>
+                </div>
+            </div>
+            <div class="video-item">
+                <div class="video-thumb">
+                    <svg class="video-thumb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="9"></circle>
+                        <path d="M10 8.5v7l6-3.5-6-3.5z"></path>
+                    </svg>
+                    <span class="video-duration">15:42</span>
+                </div>
+                <div class="video-info">
+                    <h4>Производная функции</h4>
+                    <p>Понятие производной и её геометрический смысл</p>
+                </div>
+            </div>
+            <div class="video-item">
+                <div class="video-thumb">
+                    <span class="video-duration">10:05</span>
+                </div>
+                <div class="video-info">
+                    <h4>Логарифмы</h4>
+                    <p>Свойства логарифмов и примеры решения</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Задать вопрос боту -->
+        <div class="ask-bot">
+            <div class="ask-bot-text">
+                <h4>Не понял тему?</h4>
+                <p>Задай вопрос ИИ-боту — он объяснит за минуту</p>
+            </div>
+            <button class="ask-btn">Спросить бота</button>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f8fc">
+  <title>Подготовка к экзаменам — MAX App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #17233d;
+      --muted: #74809a;
+      --paper: #f7f8fc;
+      --surface: #fff;
+      --line: #e7eaf1;
+      --coral: #ff6b57;
+      --coral-soft: #fff0ed;
+      --teal: #20a995;
+      --blue: #5479e8;
+      --yellow: #f2b544;
+      --shadow: 0 12px 32px rgba(23, 35, 61, .07);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--paper); font-family: 'DM Sans', sans-serif; }
+    body::before { content: ''; position: fixed; inset: 0 0 auto; height: 330px; z-index: -1; background: linear-gradient(125deg, #edf1fc 0%, #fff4ef 65%, #eef8f5 100%); }
+    button { font: inherit; }
+    .app { width: 100%; max-width: 760px; min-height: 100vh; margin: 0 auto; padding-bottom: 40px; }
+    header { display: flex; align-items: center; gap: 13px; padding: 18px 24px; }
+    .back-button { width: 40px; height: 40px; flex: 0 0 auto; display: grid; place-items: center; color: var(--ink); background: rgba(255,255,255,.82); border: 1px solid rgba(255,255,255,.95); border-radius: 13px; font-size: 23px; cursor: pointer; }
+    .back-button:hover { border-color: #cdd5e7; }
+    .header-title { margin: 0; font: 700 17px 'Space Grotesk', sans-serif; }
+    .header-caption { margin: 2px 0 0; color: var(--muted); font-size: 11px; }
+    main { padding: 4px 24px 30px; }
+    .intro { position: relative; overflow: hidden; padding: 25px 26px; color: white; background: #17233d; border-radius: 20px; box-shadow: 0 15px 34px rgba(23,35,61,.16); }
+    .intro::after { content: ''; position: absolute; top: -70px; right: -38px; width: 190px; height: 190px; border: 27px solid rgba(32,169,149,.35); border-radius: 50%; }
+    .intro-kicker { position: relative; z-index: 1; margin: 0 0 10px; color: #a6dfd5; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+    .intro h1 { position: relative; z-index: 1; max-width: 480px; margin: 0; font: 700 27px/1.12 'Space Grotesk', sans-serif; }
+    .intro p { position: relative; z-index: 1; max-width: 480px; margin: 9px 0 0; color: #c0c9d9; font-size: 13px; line-height: 1.5; }
+    .exam-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; max-width: 310px; margin: 24px 0 22px; padding: 5px; background: #e9edf6; border-radius: 13px; }
+    .exam-option { min-height: 39px; color: var(--muted); background: transparent; border: 0; border-radius: 9px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .exam-option[aria-pressed="true"] { color: var(--ink); background: #fff; box-shadow: 0 2px 8px rgba(23,35,61,.09); }
+    .section-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 12px; }
+    .section-heading h2 { margin: 0; font: 700 18px 'Space Grotesk', sans-serif; }
+    .section-heading span { color: var(--muted); font-size: 11px; }
+    .subject-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+    .subject-card { min-width: 0; padding: 16px; text-align: left; color: inherit; background: var(--surface); border: 1px solid var(--line); border-radius: 15px; cursor: pointer; box-shadow: 0 4px 12px rgba(23,35,61,.025); transition: transform .18s, border-color .18s, box-shadow .18s; }
+    .subject-card:hover { transform: translateY(-2px); border-color: #cbd4e8; box-shadow: var(--shadow); }
+    .subject-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .subject-icon { width: 35px; height: 35px; display: grid; place-items: center; color: var(--blue); background: #edf1ff; border-radius: 11px; font: 700 14px 'Space Grotesk', sans-serif; }
+    .subject-card:nth-child(3n + 2) .subject-icon { color: #c78816; background: #fff6df; }
+    .subject-card:nth-child(3n) .subject-icon { color: var(--teal); background: #e9f8f5; }
+    .subject-arrow { color: #9aa5ba; font-size: 20px; }
+    .subject-card h3 { margin: 13px 0 4px; font: 700 14px 'Space Grotesk', sans-serif; }
+    .subject-meta { margin: 0; color: var(--muted); font-size: 11px; }
+    .progress-track { height: 5px; overflow: hidden; margin-top: 13px; background: #edf0f5; border-radius: 5px; }
+    .progress-fill { height: 100%; background: var(--teal); border-radius: inherit; }
+    .progress-caption { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; color: var(--muted); font-size: 10px; }
+    .study-row { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; margin-top: 22px; }
+    .study-stat { padding: 15px 16px; background: rgba(255,255,255,.76); border-top: 1px solid rgba(255,255,255,.95); border-bottom: 1px solid var(--line); }
+    .study-stat strong { display: block; font: 700 20px 'Space Grotesk', sans-serif; }
+    .study-stat span { color: var(--muted); font-size: 11px; }
+    .tip { display: flex; gap: 11px; margin-top: 18px; padding: 14px 15px; background: #fff6df; border: 1px solid #f4e7c3; border-radius: 13px; }
+    .tip-mark { color: #bd8111; font-size: 17px; line-height: 1; }
+    .tip p { margin: 0; color: #70582e; font-size: 12px; line-height: 1.45; }
+    .tip strong { color: #493719; }
+    .practice-overlay { display: none; position: fixed; inset: 0; z-index: 5; align-items: center; justify-content: center; padding: 16px; background: rgba(23,35,61,.52); backdrop-filter: blur(5px); }
+    .practice-overlay.open { display: flex; }
+    .practice-dialog { width: min(100%, 510px); max-height: min(720px, calc(100vh - 32px)); overflow: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: 0 24px 70px rgba(23,35,61,.27); }
+    .practice-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 19px 20px 15px; border-bottom: 1px solid var(--line); }
+    .practice-label { margin: 0 0 5px; color: var(--muted); font-size: 10px; font-weight: 700; text-transform: uppercase; }
+    .practice-header h2 { margin: 0; font: 700 18px 'Space Grotesk', sans-serif; }
+    .close-button { width: 32px; height: 32px; flex: 0 0 auto; color: var(--muted); background: var(--paper); border: 0; border-radius: 9px; font-size: 21px; cursor: pointer; }
+    .practice-body { padding: 19px 20px 20px; }
+    .question-progress { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+    .question-track { height: 5px; margin: 9px 0 20px; background: #edf0f5; border-radius: 5px; }
+    .question-track span { display: block; height: 100%; background: var(--coral); border-radius: inherit; transition: width .2s; }
+    .question-text { margin: 0 0 15px; font: 600 16px/1.45 'Space Grotesk', sans-serif; }
+    .answers { display: grid; gap: 8px; }
+    .answer-option { width: 100%; padding: 12px 13px; color: var(--ink); text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 13px; cursor: pointer; }
+    .answer-option:hover:not(:disabled) { border-color: #aebbe0; background: #f7f8fc; }
+    .answer-option.correct { color: #087a69; background: #e9f8f5; border-color: #8ed4c7; }
+    .answer-option.incorrect { color: #b34c3d; background: var(--coral-soft); border-color: #f4b0a5; }
+    .answer-option:disabled { cursor: default; }
+    .answer-feedback { min-height: 20px; margin: 12px 0 0; color: var(--muted); font-size: 12px; line-height: 1.4; }
+    .practice-next { width: 100%; min-height: 43px; margin-top: 12px; color: white; background: var(--ink); border: 0; border-radius: 11px; font-weight: 700; cursor: pointer; }
+    .practice-next:disabled { opacity: .4; cursor: default; }
+    body.dark { --ink: #f4f5f8; --muted: #aab4c8; --paper: #0e0f13; --surface: #24272f; --line: #383c46; background: #0e0f13; }
+    body.dark::before { background: linear-gradient(125deg, #171c28, #25201f 65%, #14221f); }
+    body.dark .back-button, body.dark .exam-switch { color: var(--ink); background: #24272f; border-color: #383c46; }
+    body.dark .exam-option[aria-pressed="true"] { color: var(--ink); background: #383c46; }
+    body.dark .subject-card { background: var(--surface); border-color: var(--line); }
+    body.dark .progress-track, body.dark .question-track { background: #383c46; }
+    body.dark .study-stat { background: #1a1c22; border-color: #383c46; }
+    body.dark .tip { background: #302a1c; border-color: #544628; }
+    body.dark .tip p, body.dark .tip strong { color: #e8d7af; }
+    body.dark .practice-dialog { background: var(--surface); }
+    body.dark .answer-option { color: var(--ink); background: var(--surface); border-color: var(--line); }
+    body.dark .answer-option.correct { color: #91e0d2; background: #1c3935; border-color: #27665b; }
+    body.dark .answer-option.incorrect { color: #ffb8ad; background: #412724; border-color: #713d35; }
+    body.dark .answer-option:hover:not(:disabled) { background: #2d313b; }
+    body.dark .close-button { color: var(--muted); background: #30343e; }
+    body.dark .practice-next { background: var(--blue); }
+    @media (max-width: 520px) {
+      header { padding: 15px 18px; }
+      main { padding: 3px 18px 26px; }
+      .intro { padding: 22px 20px; }
+      .intro h1 { max-width: 300px; font-size: 24px; }
+      .subject-list { grid-template-columns: 1fr; gap: 9px; }
+      .subject-card { display: grid; grid-template-columns: 38px 1fr 18px; align-items: center; column-gap: 12px; padding: 13px; }
+      .subject-icon { grid-row: span 3; }
+      .subject-card h3 { margin: 0 0 3px; }
+      .subject-arrow { grid-column: 3; grid-row: 1 / span 3; }
+      .progress-track { grid-column: 2; margin-top: 9px; }
+      .progress-caption { grid-column: 2; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <button class="back-button" id="backButton" aria-label="Вернуться на главную">‹</button>
+      <div>
+        <h1 class="header-title">Подготовка к экзаменам</h1>
+        <p class="header-caption">Твой план, предметы и тренировки</p>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="pageTitle">
+        <p class="intro-kicker">Учись в своём темпе</p>
+        <h1 id="pageTitle">Шаг за шагом к высоким баллам</h1>
+        <p>Выбери экзамен и предмет. Короткие задания помогут закрепить темы и увидеть свой прогресс.</p>
+      </section>
+
+      <div class="exam-switch" role="group" aria-label="Выбор экзамена">
+        <button class="exam-option" type="button" data-exam="ЕГЭ" aria-pressed="true">ЕГЭ</button>
+        <button class="exam-option" type="button" data-exam="ОГЭ" aria-pressed="false">ОГЭ</button>
+      </div>
+
+      <section aria-labelledby="subjectsTitle">
+        <div class="section-heading">
+          <h2 id="subjectsTitle">Предметы ЕГЭ</h2>
+          <span id="subjectCount">4 предмета</span>
+        </div>
+        <div class="subject-list" id="subjectList"></div>
+      </section>
+
+      <section class="study-row" aria-label="Статистика подготовки">
+        <div class="study-stat"><strong id="sessionsValue">0</strong><span>решено заданий</span></div>
+        <div class="study-stat"><strong id="streakValue">1 день</strong><span>твой учебный ритм</span></div>
+      </section>
+
+      <aside class="tip">
+        <span class="tip-mark" aria-hidden="true">✦</span>
+        <p><strong>Совет на сегодня.</strong> Лучше заниматься понемногу, но регулярно. Начни с одного предмета и одной небольшой тренировки.</p>
+      </aside>
+    </main>
+  </div>
+
+  <div class="practice-overlay" id="practiceOverlay" role="dialog" aria-modal="true" aria-labelledby="practiceTitle">
+    <section class="practice-dialog">
+      <div class="practice-header">
+        <div>
+          <p class="practice-label" id="practiceLabel">Тренировка</p>
+          <h2 id="practiceTitle">Русский язык</h2>
+        </div>
+        <button class="close-button" id="closePractice" type="button" aria-label="Закрыть тренировку">×</button>
+      </div>
+      <div class="practice-body" id="practiceBody"></div>
+    </section>
+  </div>
+
+  <script>
+    const examSubjects = {
+      'ЕГЭ': [
+        { name: 'Русский язык', icon: 'А', tasks: 27, progress: 34, questions: [
+          { text: 'В каком слове верно выделена ударная гласная?', options: ['звонИт', 'тОрты', 'кУхонный', 'срЕдства'], answer: 0 },
+          { text: 'Укажите предложение с грамматической ошибкой.', options: ['Подъезжая к станции, у меня слетела шляпа.', 'Мы долго шли по знакомой дороге.', 'Экзамен начнётся ровно в девять.', 'Ребята вернулись домой после прогулки.'], answer: 0 },
+          { text: 'В каком слове пишется одна буква Н?', options: ['решё..ая задача', 'песча..ый берег', 'организова..ая встреча', 'прочита..ая книга'], answer: 1 }
+        ] },
+        { name: 'Математика профильная', icon: '∑', tasks: 19, progress: 18, questions: [
+          { text: 'Чему равен синус угла 30°?', options: ['1/2', '√2/2', '√3/2', '1'], answer: 0 },
+          { text: 'Решите уравнение: 2x + 5 = 13.', options: ['3', '4', '5', '9'], answer: 1 },
+          { text: 'Найдите производную функции f(x) = x².', options: ['x', '2x', 'x²', '2'], answer: 1 }
+        ] },
+        { name: 'Обществознание', icon: '§', tasks: 25, progress: 52, questions: [
+          { text: 'Что отличает человека от других живых существ?', options: ['Потребность в пище', 'Способность к сознательной деятельности', 'Реакция на раздражители', 'Рост и развитие'], answer: 1 },
+          { text: 'Какой пример иллюстрирует социальную мобильность?', options: ['Смена времён года', 'Переезд в другой город', 'Повышение сотрудника в должности', 'Изменение курса валют'], answer: 2 },
+          { text: 'К основным признакам государства относится...', options: ['Наличие общей религии', 'Суверенитет', 'Единый язык', 'Общая история'], answer: 1 }
+        ] },
+        { name: 'Информатика', icon: '01', tasks: 27, progress: 12, questions: [
+          { text: 'Сколько бит в одном байте?', options: ['4', '8', '16', '32'], answer: 1 },
+          { text: 'Какое значение десятичного числа 10 в двоичной системе?', options: ['1001', '1010', '1100', '1110'], answer: 1 },
+          { text: 'Как называется алгоритм, выполняющий действия по очереди?', options: ['Циклический', 'Разветвляющийся', 'Линейный', 'Рекурсивный'], answer: 2 }
+        ] }
+      ],
+      'ОГЭ': [
+        { name: 'Русский язык', icon: 'А', tasks: 13, progress: 34, questions: [
+          { text: 'В каком слове верно выделена ударная гласная?', options: ['звонИт', 'тОрты', 'кУхонный', 'срЕдства'], answer: 0 },
+          { text: 'Укажите слово с проверяемой безударной гласной.', options: ['трава', 'вокзал', 'собака', 'карандаш'], answer: 0 },
+          { text: 'Какое предложение является сложным?', options: ['Солнце скрылось за лесом.', 'Стемнело, и на небе появились звёзды.', 'Тихий вечер.', 'Ветер качал деревья.'], answer: 1 }
+        ] },
+        { name: 'Математика', icon: '∑', tasks: 25, progress: 18, questions: [
+          { text: 'Решите уравнение: 3x = 21.', options: ['6', '7', '8', '9'], answer: 1 },
+          { text: 'Чему равна площадь прямоугольника со сторонами 4 и 6?', options: ['10', '20', '24', '28'], answer: 2 },
+          { text: 'Какое число является корнем уравнения x² = 25?', options: ['Только 5', 'Только −5', '5 и −5', '10'], answer: 2 }
+        ] },
+        { name: 'Обществознание', icon: '§', tasks: 24, progress: 52, questions: [
+          { text: 'К какой сфере жизни общества относится образование?', options: ['Экономической', 'Социальной', 'Политической', 'Духовной'], answer: 3 },
+          { text: 'Что является примером нормы права?', options: ['Правило этикета', 'Традиция семьи', 'Статья закона', 'Личная привычка'], answer: 2 },
+          { text: 'Как называется доход, который получает работник за труд?', options: ['Налог', 'Зарплата', 'Пенсия', 'Пошлина'], answer: 1 }
+        ] },
+        { name: 'Биология', icon: 'Б', tasks: 21, progress: 9, questions: [
+          { text: 'Какой орган растения поглощает воду из почвы?', options: ['Лист', 'Цветок', 'Корень', 'Плод'], answer: 2 },
+          { text: 'Как называется наука о живых организмах?', options: ['Геология', 'Биология', 'Физика', 'Астрономия'], answer: 1 },
+          { text: 'Какой газ выделяется растениями при фотосинтезе?', options: ['Кислород', 'Азот', 'Водород', 'Метан'], answer: 0 }
+        ] }
+      ]
+    };
+
+    let activeExam = 'ЕГЭ';
+    let activeSubject = null;
+    let questionIndex = 0;
+    let correctAnswers = 0;
+    let hasAnswered = false;
+
+    document.body.classList.toggle('dark', localStorage.getItem('dark_theme') === 'true');
+
+    function renderSubjects() {
+      const subjects = examSubjects[activeExam];
+      document.getElementById('subjectsTitle').textContent = 'Предметы ' + activeExam;
+      document.getElementById('subjectCount').textContent = subjects.length + ' предмета';
+      document.getElementById('subjectList').innerHTML = subjects.map(function(subject, index) {
+        const key = 'exam_progress_' + activeExam + '_' + subject.name;
+        const saved = Number(localStorage.getItem(key) || subject.progress);
+        return '<button class="subject-card" type="button" data-subject="' + index + '">' +
+          '<span class="subject-icon" aria-hidden="true">' + subject.icon + '</span>' +
+          '<h3>' + subject.name + '</h3>' +
+          '<span class="subject-meta">' + subject.tasks + ' заданий в экзамене</span>' +
+          '<span class="subject-arrow" aria-hidden="true">›</span>' +
+          '<span class="progress-track"><span class="progress-fill" style="width:' + saved + '%"></span></span>' +
+          '<span class="progress-caption"><span>Пройдено тем</span><span>' + saved + '%</span></span>' +
+          '</button>';
+      }).join('');
+      document.querySelectorAll('.subject-card').forEach(function(card) {
+        card.addEventListener('click', function() {
+          const subject = subjects[Number(card.dataset.subject)];
+          if (activeExam === 'ЕГЭ' && subject.name === 'Русский язык') {
+            window.location.href = 'russian-ege.html';
+            return;
+          }
+          const courseIds = {
+            'Математика профильная': 'math',
+            'Обществознание': 'social',
+            'Информатика': 'informatics'
+          };
+          if (activeExam === 'ЕГЭ' && courseIds[subject.name]) {
+            window.location.href = 'ege-course.html?subject=' + courseIds[subject.name];
+            return;
+          }
+          const ogeCourseIds = {
+            'Русский язык': 'russian-oge',
+            'Математика': 'math-oge',
+            'Обществознание': 'social-oge',
+            'Биология': 'biology-oge'
+          };
+          if (activeExam === 'ОГЭ' && ogeCourseIds[subject.name]) {
+            window.location.href = 'ege-course.html?subject=' + ogeCourseIds[subject.name];
+            return;
+          }
+          startPractice(subject);
+        });
+      });
+    }
+
+    function startPractice(subject) {
+      activeSubject = subject;
+      questionIndex = 0;
+      correctAnswers = 0;
+      hasAnswered = false;
+      document.getElementById('practiceLabel').textContent = activeExam + ' · тренировка';
+      document.getElementById('practiceTitle').textContent = subject.name;
+      document.getElementById('practiceOverlay').classList.add('open');
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const question = activeSubject.questions[questionIndex];
+      const total = activeSubject.questions.length;
+      document.getElementById('practiceBody').innerHTML =
+        '<div class="question-progress"><span>Задание ' + (questionIndex + 1) + ' из ' + total + '</span><span>' + correctAnswers + ' верно</span></div>' +
+        '<div class="question-track"><span style="width:' + ((questionIndex + 1) / total * 100) + '%"></span></div>' +
+        '<p class="question-text">' + question.text + '</p>' +
+        '<div class="answers">' + question.options.map(function(option, index) {
+          return '<button class="answer-option" type="button" data-answer="' + index + '">' + option + '</button>';
+        }).join('') + '</div>' +
+        '<p class="answer-feedback" id="answerFeedback" aria-live="polite"></p>' +
+        '<button class="practice-next" id="practiceNext" type="button" disabled>' + (questionIndex === total - 1 ? 'Завершить тренировку' : 'Следующее задание') + '</button>';
+      document.querySelectorAll('.answer-option').forEach(function(option) {
+        option.addEventListener('click', function() { chooseAnswer(Number(option.dataset.answer)); });
+      });
+      document.getElementById('practiceNext').addEventListener('click', advancePractice);
+    }
+
+    function chooseAnswer(answerIndex) {
+      if (hasAnswered) return;
+      hasAnswered = true;
+      const correctIndex = activeSubject.questions[questionIndex].answer;
+      const options = document.querySelectorAll('.answer-option');
+      options.forEach(function(option, index) {
+        option.disabled = true;
+        if (index === correctIndex) option.classList.add('correct');
+        else if (index === answerIndex) option.classList.add('incorrect');
+      });
+      const isCorrect = answerIndex === correctIndex;
+      if (isCorrect) correctAnswers += 1;
+      document.getElementById('answerFeedback').textContent = isCorrect ? 'Верно! Хороший ответ.' : 'Пока не получилось. Правильный ответ отмечен.';
+      document.getElementById('practiceNext').disabled = false;
+      document.querySelector('.question-progress span:last-child').textContent = correctAnswers + ' верно';
+    }
+
+    function advancePractice() {
+      if (questionIndex < activeSubject.questions.length - 1) {
+        questionIndex += 1;
+        hasAnswered = false;
+        renderQuestion();
+        return;
+      }
+      const total = activeSubject.questions.length;
+      const key = 'exam_progress_' + activeExam + '_' + activeSubject.name;
+      const previous = Number(localStorage.getItem(key) || activeSubject.progress);
+      localStorage.setItem(key, Math.min(100, previous + Math.round(correctAnswers / total * 10)));
+      localStorage.setItem('exam_solved_count', String(Number(localStorage.getItem('exam_solved_count') || 0) + total));
+      document.getElementById('practiceBody').innerHTML =
+        '<div class="question-progress"><span>Тренировка завершена</span><span>' + correctAnswers + ' из ' + total + '</span></div>' +
+        '<div class="question-track"><span style="width:100%"></span></div>' +
+        '<p class="question-text">' + (correctAnswers === total ? 'Отличный результат!' : 'Хорошая работа, продолжай тренироваться!') + '</p>' +
+        '<p class="answer-feedback">Верных ответов: ' + correctAnswers + ' из ' + total + '. Прогресс сохранён на этом устройстве.</p>' +
+        '<button class="practice-next" id="finishPractice" type="button">Готово</button>';
+      document.getElementById('finishPractice').addEventListener('click', closePractice);
+      renderSubjects();
+      updateStats();
+    }
+
+    function closePractice() {
+      document.getElementById('practiceOverlay').classList.remove('open');
+      activeSubject = null;
+    }
+
+    function updateStats() {
+      document.getElementById('sessionsValue').textContent = localStorage.getItem('exam_solved_count') || '0';
+    }
+
+    document.querySelectorAll('.exam-option').forEach(function(button) {
+      button.addEventListener('click', function() {
+        activeExam = button.dataset.exam;
+        document.querySelectorAll('.exam-option').forEach(function(option) {
+          option.setAttribute('aria-pressed', String(option === button));
+        });
+        renderSubjects();
+      });
+    });
+
+    document.getElementById('backButton').addEventListener('click', function() { window.location.href = 'app.html'; });
+    document.getElementById('closePractice').addEventListener('click', closePractice);
+    document.getElementById('practiceOverlay').addEventListener('click', function(event) {
+      if (event.target.id === 'practiceOverlay') closePractice();
+    });
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') closePractice();
+    });
+
+    updateStats();
+    renderSubjects();
+  </script>
+</body>
+</html>
